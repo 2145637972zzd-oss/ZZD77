@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block page_id %}dish-hot{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-title">热销菜品TOP20</div>
+    <div id="hot-dish-bar-chart" class="chart-container"></div>
+</div>
+
+<div class="card">
+    <div class="card-title">详细数据</div>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>排名</th>
+                <th>菜品名称</th>
+                <th>销量</th>
+                <th>销售额(元)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for dish in hot_dish %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ dish.dish_name }}</td>
+                <td>{{ dish.sale_count }}</td>
+                <td>{{ "%.2f"|format(dish.sale_amount) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    window.hotDishData = {{ hot_dish | tojson }};
+</script>
+{% endblock %}
