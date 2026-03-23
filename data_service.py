@@ -3,6 +3,7 @@ from sqlalchemy import func
 from app import db
 from app.utils.models import ConsumeRecord, CanteenInfo, DishInfo, UserInfo, CanteenWindow, MealConfig
 
+
 class DataService:
     # 获取总消费金额
     @staticmethod
@@ -56,7 +57,8 @@ class DataService:
                ).group_by(MealConfig.meal_id).order_by(MealConfig.sort)
 
         result = query.all()
-        return [{'meal_name': r.meal_name, 'total_amount': float(r.total_amount), 'order_count': r.order_count} for r in result]
+        return [{'meal_name': r.meal_name, 'total_amount': float(r.total_amount), 'order_count': r.order_count} for r in
+                result]
 
     # 按食堂获取消费排行
     @staticmethod
@@ -69,7 +71,8 @@ class DataService:
                ).group_by(CanteenInfo.canteen_id).order_by(func.sum(ConsumeRecord.total_amount).desc())
 
         result = query.all()
-        return [{'canteen_name': r.canteen_name, 'total_amount': float(r.total_amount), 'order_count': r.order_count} for r in result]
+        return [{'canteen_name': r.canteen_name, 'total_amount': float(r.total_amount), 'order_count': r.order_count}
+                for r in result]
 
     # 获取热销菜品TOP N
     @staticmethod
@@ -82,21 +85,27 @@ class DataService:
                ).group_by(DishInfo.dish_id).order_by(func.count(ConsumeRecord.record_id).desc()).limit(topn)
 
         result = query.all()
-        return [{'dish_name': r.dish_name, 'sale_count': r.sale_count, 'sale_amount': float(r.sale_amount)} for r in result]
+        return [{'dish_name': r.dish_name, 'sale_count': r.sale_count, 'sale_amount': float(r.sale_amount)} for r in
+                result]
 
-    # 获取消费记录分页列表（已加入多条件过滤支持）
+    # 获取消费记录分页列表（终极修复：精确按索引读取 Row 对象，彻底避免属性报错）
     @staticmethod
     def get_consume_record_list(page=1, page_size=20, canteen_id=None, keyword=None, start_date=None, end_date=None):
+        # 1. 精确指定要查询的字段，保证返回的是一个具有固定顺序的 Row 数据行
         query = db.session.query(
-            ConsumeRecord,
-            UserInfo.name,
-            CanteenInfo.canteen_name,
-            CanteenWindow.window_name
+            ConsumeRecord.record_id,  # 索引 0
+            ConsumeRecord.user_id,  # 索引 1
+            ConsumeRecord.total_amount,  # 索引 2
+            ConsumeRecord.pay_time,  # 索引 3
+            ConsumeRecord.pay_type,  # 索引 4
+            UserInfo.name,  # 索引 5
+            CanteenInfo.canteen_name,  # 索引 6
+            CanteenWindow.window_name  # 索引 7
         ).join(UserInfo, ConsumeRecord.user_id == UserInfo.user_id
                ).join(CanteenInfo, ConsumeRecord.canteen_id == CanteenInfo.canteen_id
                       ).join(CanteenWindow, ConsumeRecord.window_id == CanteenWindow.window_id)
 
-        # 动态组装查询条件
+        # 2. 动态组装查询条件
         if canteen_id:
             query = query.filter(ConsumeRecord.canteen_id == canteen_id)
         if keyword:
@@ -107,23 +116,26 @@ class DataService:
         if end_date:
             query = query.filter(ConsumeRecord.pay_time <= end_date)
 
-        # 默认按时间倒序
+        # 3. 默认按时间倒序
         query = query.order_by(ConsumeRecord.pay_time.desc())
 
+        # 4. 获取分页对象
         pagination = query.paginate(page=page, per_page=page_size, error_out=False)
         records = []
+
+        # 5. 安全地通过索引(0,1,2...)取值，完全兼容 SQLAlchemy 的所有版本
         for item in pagination.items:
-            record = item.ConsumeRecord
             records.append({
-                'record_id': record.record_id,
-                'user_id': record.user_id,
-                'user_name': item.name,
-                'canteen_name': item.canteen_name,
-                'window_name': item.window_name,
-                'total_amount': float(record.total_amount),
-                'pay_time': record.pay_time.strftime('%Y-%m-%d %H:%M:%S'),
-                'pay_type': record.pay_type
+                'record_id': item[0],
+                'user_id': item[1],
+                'user_name': item[5],
+                'canteen_name': item[6],
+                'window_name': item[7],
+                'total_amount': float(item[2]),
+                'pay_time': item[3].strftime('%Y-%m-%d %H:%M:%S') if item[3] else '',
+                'pay_type': item[4]
             })
+
         return records, pagination.total, pagination.pages
 
     # 获取消费数据DataFrame（用于算法分析）
@@ -163,5 +175,6 @@ class DataService:
             last_consume_days=('pay_time', lambda x: (pd.Timestamp.now() - x.max()).days)
         ).reset_index()
         return user_features
+
 
 data_service = DataService()

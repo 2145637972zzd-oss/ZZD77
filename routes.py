@@ -1,6 +1,7 @@
 import random
 import io
 import pandas as pd
+import hashlib  # 用于 MD5 密码加密
 from functools import wraps
 from flask import Blueprint, render_template, request, redirect, url_for, session, send_file, flash
 from sqlalchemy import text
@@ -11,7 +12,6 @@ from app.services.arima_service import arima_service
 from app.services.apriori_service import apriori_service
 from app.services.cluster_service import cluster_service
 from app.services.recommend_service import recommend_service
-# 【新增】：引入食堂模型用于前端下拉菜单的数据渲染
 from app.utils.models import CanteenInfo
 
 main_bp = Blueprint('main', __name__)
@@ -21,10 +21,10 @@ main_bp = Blueprint('main', __name__)
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        # 检查 Session，若未登录则重定向至登录页
         if 'user_id' not in session:
             return redirect(url_for('main.login'))
         return f(*args, **kwargs)
+
     return decorated_function
 
 
@@ -34,37 +34,54 @@ def login():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
+        login_role = request.form.get('login_role', 'student')
+        remember_me = request.form.get('remember_me') == 'true'
 
         try:
-            # 真实数据库账号校验
-            sql = text("SELECT * FROM sys_user WHERE username = :username AND password = :password")
-            result = db.session.execute(sql, {'username': username, 'password': password}).fetchone()
+            if login_role == 'merchant':
+                # 商家/管理员：将明文密码转为 MD5 后再去数据库校验
+                md5_password = hashlib.md5(password.encode('utf-8')).hexdigest()
+                sql = text("SELECT * FROM sys_user WHERE username = :username AND password = :password")
+                result = db.session.execute(sql, {'username': username, 'password': md5_password}).fetchone()
+            else:
+                # 学生/教职工：查询 user_info 表。
+                # 由于 user_info 表暂未设计密码字段，这里强制校验输入默认密码为 '123456' 模拟真实登录
+                if password != '123456':
+                    flash("学生/教职工初始密码为 123456，请重试")
+                    return render_template('login.html')
+
+                sql = text("SELECT * FROM user_info WHERE user_id = :username")
+                result = db.session.execute(sql, {'username': username}).fetchone()
 
             if result:
                 user_dict = dict(result._mapping) if hasattr(result, '_mapping') else dict(result)
                 session['user_id'] = user_dict.get('id') or user_dict.get('user_id') or 1
-                session['username'] = user_dict.get('username', '未知用户')
-                session['role'] = user_dict.get('role', 'student')
+                session['username'] = user_dict.get('username') or user_dict.get('name') or '未知用户'
+                session['role'] = user_dict.get('role', login_role)
+
+                # 如果勾选了"保持登录状态"，设置 session 有效期
+                if remember_me:
+                    session.permanent = True
 
                 # 根据角色进行差异化跳转
-                if session['role'] == 'admin':
+                if session['role'] == 'admin' or login_role == 'merchant':
                     return redirect(url_for('main.index'))
                 else:
                     return redirect(url_for('main.recommend'))
             else:
-                flash("账号或密码错误，请重试")
+                flash("账号或密码错误，请检查您的输入！")
                 return render_template('login.html')
 
         except Exception as e:
             print(f"登录异常: {e}")
-            # 应急降级方案：支持测试账号 admin/123456
+            # 应急降级方案 (防止数据库未连通时无法演示)
             if username == 'admin' and password == '123456':
                 session['user_id'] = 999
                 session['username'] = '超级管理员 (演示)'
                 session['role'] = 'admin'
                 return redirect(url_for('main.index'))
             else:
-                flash("系统维护中")
+                flash("系统维护中，请稍后再试")
                 return render_template('login.html')
 
     return render_template('login.html')
@@ -116,9 +133,7 @@ def dish_analysis():
 @main_bp.route('/forecast')
 @login_required
 def forecast():
-    # 动态参数交互：获取预测天数，默认7天
     forecast_days = request.args.get('days', 7, type=int)
-    # 安全边界保护
     forecast_days = max(1, min(forecast_days, 30))
 
     history, forecast_res = arima_service.sales_forecast(forecast_days=forecast_days)
@@ -128,30 +143,24 @@ def forecast():
                            forecast_data=forecast_res)
 
 
-# 【修改点】：全新升级的消费流水记录接口，支持多条件过滤与智能分页
 @main_bp.route('/records')
 @login_required
 def records():
-    # 获取分页参数
     page = request.args.get('page', 1, type=int)
     page_size = request.args.get('page_size', 20, type=int)
 
-    # 获取前端表单传来的筛选参数
     canteen_id = request.args.get('canteen_id', type=int)
     keyword = request.args.get('keyword', type=str, default='').strip()
     start_date = request.args.get('start_date', type=str, default='')
     end_date = request.args.get('end_date', type=str, default='')
 
-    # 空字符串处理，供后台判断
     canteen_id = canteen_id if canteen_id else None
     keyword = keyword if keyword else None
     start_date = start_date if start_date else None
     end_date = end_date if end_date else None
 
-    # 查询食堂列表以供前端筛选下拉框渲染
     canteens = db.session.query(CanteenInfo).filter(CanteenInfo.status == 1).all()
 
-    # 调用数据层获取过滤后的数据
     res, total_records, pages = data_service.get_consume_record_list(
         page=page,
         page_size=page_size,
@@ -185,24 +194,22 @@ def reports():
     return render_template('reports.html', canteen_data=canteen_data)
 
 
-# --- 4. 智能推荐模块 (支持换一批) ---
+# --- 4. 智能推荐模块 ---
 @main_bp.route('/recommend')
 @login_required
 def recommend():
     current_user_id = session.get('user_id', 1)
-    # 获取算法计算的推荐候选池
     recommend_pool_ids = recommend_service.get_recommendations(current_user_id, top_n=20)
 
     recommended_dish_ids = []
     if recommend_pool_ids:
-        # 随机采样，实现“换一批”功能
         sample_size = min(5, len(recommend_pool_ids))
         recommended_dish_ids = random.sample(recommend_pool_ids, sample_size)
 
     recommended_dishes = []
     if recommended_dish_ids:
         ids_str = ', '.join(map(str, recommended_dish_ids))
-        sql = text(f"SELECT * FROM dish_info WHERE id IN ({ids_str})")
+        sql = text(f"SELECT * FROM dish_info WHERE dish_id IN ({ids_str})")
 
         try:
             result = db.session.execute(sql).fetchall()
@@ -211,7 +218,7 @@ def recommend():
                 dish_name = row_dict.get('dish_name') or row_dict.get('name') or "未知菜品"
                 price = row_dict.get('price', '暂无')
                 recommended_dishes.append({
-                    "id": row_dict['id'],
+                    "id": row_dict['dish_id'],
                     "name": dish_name,
                     "reason": f"💰 价格: {price} 元 | 发现你的口味偏好"
                 })
@@ -227,16 +234,14 @@ def recommend():
                            recommended_dishes=recommended_dishes)
 
 
-# --- 5. 办公自动化：一键导出报表接口 ---
+# --- 5. 一键导出报表 ---
 @main_bp.route('/export_report')
 @login_required
 def export_report():
     try:
-        # 提取食堂经营数据
         canteen_data = data_service.get_consume_by_canteen()
         df = pd.DataFrame(canteen_data)
 
-        # 优化报表表头
         column_map = {
             'canteen_name': '食堂名称',
             'total_amount': '累计营业额(元)',
@@ -244,14 +249,12 @@ def export_report():
         }
         df = df.rename(columns=column_map)
 
-        # 在内存中构建 Excel 文件流
         output = io.BytesIO()
         with pd.ExcelWriter(output, engine='openpyxl') as writer:
             df.to_excel(writer, index=False, sheet_name='食堂分析周报')
 
         output.seek(0)
 
-        # 触发附件下载
         return send_file(
             output,
             mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

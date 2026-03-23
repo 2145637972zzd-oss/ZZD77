@@ -18,7 +18,8 @@
 
                 <input type="range" class="form-range flex-grow-1 me-3" id="daysRange" name="days"
                        min="1" max="30" value="{{ forecast_days }}"
-                       oninput="document.getElementById('daysOutput').innerText = this.value + ' 天'">
+                       oninput="document.getElementById('daysOutput').innerText = this.value + ' 天'"
+                       onchange="document.getElementById('forecastForm').submit();">
 
                 <span class="badge bg-primary fs-6 me-4" style="min-width: 60px; font-size: 1rem;" id="daysOutput">{{ forecast_days }} 天</span>
 
@@ -26,7 +27,7 @@
             </form>
 
             <small class="text-muted mt-2 d-block">
-                💡 <b>答辩演示提示：</b> 拖动滑块可实时动态调整 ARIMA 算法的预测时间窗口（支持 1~30 天），后端将根据新参数重新拟合并渲染图表。
+                💡 <b>答辩演示提示：</b> 拖动滑块可实时动态调整 ARIMA 算法的预测时间窗口（支持 1~30 天），前端会在拖动松开后自动请求后端重新拟合并渲染图表。
             </small>
         </div>
     </div>
@@ -44,21 +45,34 @@
         var myChart = echarts.init(chartDom);
 
         // 安全地接收后端传来的 Python 数据并转为 JS 对象
-        var historyData = {{ history_data | tojson | safe }};
-        var forecastData = {{ forecast_data | tojson | safe }};
+        var rawHistoryData = {{ history_data | tojson | safe }};
+        var rawForecastData = {{ forecast_data | tojson | safe }};
         var currentDays = {{ forecast_days }};
 
-        // 容错处理：确保即使 arima_service 没有返回标准格式，图表也不报错
-        if (!historyData || historyData.length === 0) {
+        var historyData = [];
+        var forecastData = [];
+
+        // 容错处理与【数据格式转换】
+        if (!rawHistoryData || rawHistoryData.length === 0) {
             historyData = [12000, 13500, 11000, 14200, 15000, 13800, 14500]; // 模拟历史数据
+        } else {
+            // 【关键修复】把字典数组 [{'amount': 100}, ...] 提取转换成 [100, ...] 的纯数字数组
+            historyData = rawHistoryData.map(function(item) {
+                return item.amount !== undefined ? item.amount : item;
+            });
         }
-        if (!forecastData || forecastData.length === 0) {
+
+        if (!rawForecastData || rawForecastData.length === 0) {
             // 如果后端预测数组为空，前端自动模拟数据用于 UI 展示
-            forecastData = [];
             var lastVal = historyData[historyData.length - 1];
             for(var i=0; i<currentDays; i++){
                 forecastData.push(lastVal + Math.floor(Math.random() * 2000 - 1000));
             }
+        } else {
+            // 【关键修复】把预测数据也提取成纯数字数组
+            forecastData = rawForecastData.map(function(item) {
+                return item.forecast_amount !== undefined ? item.forecast_amount : item;
+            });
         }
 
         // 拼接横坐标 (模拟日期)
@@ -97,7 +111,7 @@
                             { offset: 1, color: 'rgba(24,144,255,0.05)' }
                         ])
                     },
-                    data: historyData
+                    data: historyData // 修复后此处为纯数字数组
                 },
                 {
                     name: 'ARIMA 模型预测值',
@@ -105,7 +119,7 @@
                     smooth: true,
                     itemStyle: { color: '#ff4d4f' },
                     lineStyle: { type: 'dashed', width: 2 }, // 虚线表示预测
-                    data: alignedForecastData
+                    data: alignedForecastData // 修复后此处为纯数字数组
                 }
             ]
         };
