@@ -1,7 +1,8 @@
+# app/services/data_service.py
 import pandas as pd
 from sqlalchemy import func
 from app import db
-from app.utils.models import ConsumeRecord, CanteenInfo, DishInfo, UserInfo, CanteenWindow, MealConfig
+from app.models import ConsumeRecord, CanteenInfo, DishInfo, UserInfo, CanteenWindow, MealConfig
 
 
 class DataService:
@@ -67,8 +68,8 @@ class DataService:
             CanteenInfo.canteen_name,
             func.sum(ConsumeRecord.total_amount).label('total_amount'),
             func.count(ConsumeRecord.record_id).label('order_count')
-        ).join(ConsumeRecord, ConsumeRecord.canteen_id == CanteenInfo.canteen_id
-               ).group_by(CanteenInfo.canteen_id).order_by(func.sum(ConsumeRecord.total_amount).desc())
+        ).join(ConsumeRecord, ConsumeRecord.canteen_id == CanteenInfo.id  # 【修复】修改为 CanteenInfo.id
+               ).group_by(CanteenInfo.id).order_by(func.sum(ConsumeRecord.total_amount).desc()) # 【修复】修改为 CanteenInfo.id
 
         result = query.all()
         return [{'canteen_name': r.canteen_name, 'total_amount': float(r.total_amount), 'order_count': r.order_count}
@@ -88,42 +89,36 @@ class DataService:
         return [{'dish_name': r.dish_name, 'sale_count': r.sale_count, 'sale_amount': float(r.sale_amount)} for r in
                 result]
 
-    # 获取消费记录分页列表（终极修复：精确按索引读取 Row 对象，彻底避免属性报错）
+    # 获取消费记录分页列表
     @staticmethod
     def get_consume_record_list(page=1, page_size=20, canteen_id=None, keyword=None, start_date=None, end_date=None):
-        # 1. 精确指定要查询的字段，保证返回的是一个具有固定顺序的 Row 数据行
         query = db.session.query(
-            ConsumeRecord.record_id,  # 索引 0
-            ConsumeRecord.user_id,  # 索引 1
-            ConsumeRecord.total_amount,  # 索引 2
-            ConsumeRecord.pay_time,  # 索引 3
-            ConsumeRecord.pay_type,  # 索引 4
-            UserInfo.name,  # 索引 5
-            CanteenInfo.canteen_name,  # 索引 6
-            CanteenWindow.window_name  # 索引 7
+            ConsumeRecord.record_id,
+            ConsumeRecord.user_id,
+            ConsumeRecord.total_amount,
+            ConsumeRecord.pay_time,
+            ConsumeRecord.pay_type,
+            UserInfo.name,
+            CanteenInfo.canteen_name,
+            CanteenWindow.window_name
         ).join(UserInfo, ConsumeRecord.user_id == UserInfo.user_id
-               ).join(CanteenInfo, ConsumeRecord.canteen_id == CanteenInfo.canteen_id
+               ).join(CanteenInfo, ConsumeRecord.canteen_id == CanteenInfo.id  # 【修复】修改为 CanteenInfo.id
                       ).join(CanteenWindow, ConsumeRecord.window_id == CanteenWindow.window_id)
 
-        # 2. 动态组装查询条件
         if canteen_id:
             query = query.filter(ConsumeRecord.canteen_id == canteen_id)
         if keyword:
-            # 根据关键字查询用户名
             query = query.filter(UserInfo.name.like(f"%{keyword}%"))
         if start_date:
             query = query.filter(ConsumeRecord.pay_time >= start_date)
         if end_date:
             query = query.filter(ConsumeRecord.pay_time <= end_date)
 
-        # 3. 默认按时间倒序
         query = query.order_by(ConsumeRecord.pay_time.desc())
 
-        # 4. 获取分页对象
         pagination = query.paginate(page=page, per_page=page_size, error_out=False)
         records = []
 
-        # 5. 安全地通过索引(0,1,2...)取值，完全兼容 SQLAlchemy 的所有版本
         for item in pagination.items:
             records.append({
                 'record_id': item[0],
@@ -164,7 +159,6 @@ class DataService:
         if df.empty:
             return pd.DataFrame()
 
-        # 强制将 pay_time 列转为 Pandas datetime 类型，避免 dt 调用报错
         df['pay_time'] = pd.to_datetime(df['pay_time'])
 
         user_features = df.groupby('user_id').agg(

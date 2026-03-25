@@ -23,20 +23,19 @@ session = Session()
 Base = declarative_base()
 
 
-# 模型定义保持不变
+# ================== 修复：对齐最新数据库结构的独立模型 ==================
 class UserInfo(Base):
     __tablename__ = 'user_info'
-    user_id = Column(String(32), primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True) # 新增内部自增主键
+    user_id = Column(String(32))
     name = Column(String(50))
     status = Column(SmallInteger, default=1)
 
-
 class CanteenInfo(Base):
     __tablename__ = 'canteen_info'
-    canteen_id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(Integer, primary_key=True, autoincrement=True) # 修改主键名为 id
     canteen_name = Column(String(100))
     status = Column(SmallInteger, default=1)
-
 
 class CanteenWindow(Base):
     __tablename__ = 'canteen_window'
@@ -44,7 +43,6 @@ class CanteenWindow(Base):
     canteen_id = Column(Integer)
     window_name = Column(String(100))
     status = Column(SmallInteger, default=1)
-
 
 class DishInfo(Base):
     __tablename__ = 'dish_info'
@@ -54,7 +52,6 @@ class DishInfo(Base):
     price = Column(Numeric(10, 2))
     status = Column(SmallInteger, default=1)
 
-
 class MealConfig(Base):
     __tablename__ = 'meal_config'
     meal_id = Column(Integer, primary_key=True, autoincrement=True)
@@ -62,7 +59,6 @@ class MealConfig(Base):
     start_time = Column(Time)
     end_time = Column(Time)
     status = Column(SmallInteger, default=1)
-
 
 class ConsumeRecord(Base):
     __tablename__ = 'consume_record'
@@ -123,7 +119,8 @@ def generate_data():
             user = random.choice(users)
             canteen = random.choice(canteens)
 
-            valid_windows = [w for w in windows if w.canteen_id == canteen.canteen_id]
+            # 【修复】使用 canteen.id 替代废弃的 canteen.canteen_id
+            valid_windows = [w for w in windows if w.canteen_id == canteen.id]
             if not valid_windows: continue
             window = random.choice(valid_windows)
 
@@ -151,7 +148,7 @@ def generate_data():
 
             batch.append(ConsumeRecord(
                 user_id=user.user_id,
-                canteen_id=canteen.canteen_id,
+                canteen_id=canteen.id, # 【修复】使用 canteen.id
                 window_id=window.window_id,
                 dish_ids=dish_ids,
                 total_amount=amount,

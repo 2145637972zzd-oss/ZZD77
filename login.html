@@ -48,7 +48,7 @@
             border-right: 1px solid #f1f5f9;
         }
 
-        /* 用 CSS 纯代码绘制抽象几何插画 (颜色优化为现代流行色) */
+        /* 用 CSS 纯代码绘制抽象几何插画 */
         .art-container {
             position: relative;
             width: 300px;
@@ -351,7 +351,7 @@
               {% endif %}
             {% endwith %}
 
-            <form action="{{ url_for('main.login') }}" method="POST">
+            <form action="{{ url_for('auth.login') }}" method="POST">
                 <input type="hidden" name="login_role" id="login_role" value="student">
 
                 <div class="role-toggle">

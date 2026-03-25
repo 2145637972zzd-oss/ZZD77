@@ -1,0 +1,13 @@
+# 忽略环境变量配置（包含密码，绝对不能传到 GitHub）
+.env
+
+# 忽略日志文件
+logs/
+*.log
+
+# 忽略 Python 缓存
+__pycache__/
+*.pyc
+
+# 忽略 PyCharm 自身配置
+.idea/

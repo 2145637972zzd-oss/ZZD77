@@ -13,7 +13,7 @@
         <div class="card-body">
             <h6 class="card-title text-primary mb-3">⚙️ 模型参数交互控制台</h6>
 
-            <form id="forecastForm" action="{{ url_for('main.forecast') }}" method="GET" class="d-flex align-items-center">
+            <form id="forecastForm" action="{{ url_for('analysis.forecast') }}" method="GET" class="d-flex align-items-center">
                 <label for="daysRange" class="form-label mb-0 me-3 font-weight-bold" style="white-space: nowrap;">向未来预测：</label>
 
                 <input type="range" class="form-range flex-grow-1 me-3" id="daysRange" name="days"
@@ -44,7 +44,6 @@
         var chartDom = document.getElementById('forecastChart');
         var myChart = echarts.init(chartDom);
 
-        // 安全地接收后端传来的 Python 数据并转为 JS 对象
         var rawHistoryData = {{ history_data | tojson | safe }};
         var rawForecastData = {{ forecast_data | tojson | safe }};
         var currentDays = {{ forecast_days }};
@@ -52,37 +51,31 @@
         var historyData = [];
         var forecastData = [];
 
-        // 容错处理与【数据格式转换】
         if (!rawHistoryData || rawHistoryData.length === 0) {
-            historyData = [12000, 13500, 11000, 14200, 15000, 13800, 14500]; // 模拟历史数据
+            historyData = [12000, 13500, 11000, 14200, 15000, 13800, 14500];
         } else {
-            // 【关键修复】把字典数组 [{'amount': 100}, ...] 提取转换成 [100, ...] 的纯数字数组
             historyData = rawHistoryData.map(function(item) {
                 return item.amount !== undefined ? item.amount : item;
             });
         }
 
         if (!rawForecastData || rawForecastData.length === 0) {
-            // 如果后端预测数组为空，前端自动模拟数据用于 UI 展示
             var lastVal = historyData[historyData.length - 1];
             for(var i=0; i<currentDays; i++){
                 forecastData.push(lastVal + Math.floor(Math.random() * 2000 - 1000));
             }
         } else {
-            // 【关键修复】把预测数据也提取成纯数字数组
             forecastData = rawForecastData.map(function(item) {
                 return item.forecast_amount !== undefined ? item.forecast_amount : item;
             });
         }
 
-        // 拼接横坐标 (模拟日期)
         var xAxisData = [];
         for(var i=1; i<=historyData.length; i++) xAxisData.push("历史第" + i + "天");
         for(var j=1; j<=forecastData.length; j++) xAxisData.push("预测未来第" + j + "天");
 
-        // 补齐预测折线的起点（让两条线连在一起）
         var alignedForecastData = new Array(historyData.length - 1).fill("-");
-        alignedForecastData.push(historyData[historyData.length - 1]); // 连接点
+        alignedForecastData.push(historyData[historyData.length - 1]);
         alignedForecastData = alignedForecastData.concat(forecastData);
 
         var option = {
@@ -111,22 +104,21 @@
                             { offset: 1, color: 'rgba(24,144,255,0.05)' }
                         ])
                     },
-                    data: historyData // 修复后此处为纯数字数组
+                    data: historyData
                 },
                 {
                     name: 'ARIMA 模型预测值',
                     type: 'line',
                     smooth: true,
                     itemStyle: { color: '#ff4d4f' },
-                    lineStyle: { type: 'dashed', width: 2 }, // 虚线表示预测
-                    data: alignedForecastData // 修复后此处为纯数字数组
+                    lineStyle: { type: 'dashed', width: 2 },
+                    data: alignedForecastData
                 }
             ]
         };
 
         myChart.setOption(option);
 
-        // 窗口缩放时自适应
         window.addEventListener('resize', function() {
             myChart.resize();
         });

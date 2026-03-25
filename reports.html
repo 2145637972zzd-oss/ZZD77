@@ -8,7 +8,7 @@
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>📊 数据报表中心</h2>
-        <a href="{{ url_for('main.export_report') }}" class="btn btn-primary btn-sm">
+        <a href="{{ url_for('analysis.export_report') }}" class="btn btn-primary btn-sm">
             📥 导出 Excel 报表
         </a>
     </div>
@@ -41,20 +41,15 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // --- 1. 数据准备：将 Flask 传入的 canteen_data 转换为 JS 数组 ---
-        // 注意：数据格式形如 [{'canteen_name': '一食堂', 'total_amount': 5000}, ...]
         var rawData = {{ canteen_data | tojson | safe }};
 
-        // 提取名称列表和金额列表用于柱状图
         var names = rawData.map(function(item) { return item.canteen_name; });
         var amounts = rawData.map(function(item) { return item.total_amount; });
 
-        // 格式化数据用于饼图
         var pieData = rawData.map(function(item) {
             return { name: item.canteen_name, value: item.total_amount };
         });
 
-        // --- 2. 初始化柱状图 ---
         var barChart = echarts.init(document.getElementById('barChart'));
         var barOption = {
             tooltip: { trigger: 'axis' },
@@ -62,7 +57,7 @@
             xAxis: {
                 type: 'category',
                 data: names,
-                axisLabel: { interval: 0, rotate: 30 } // 防止名字太长重叠
+                axisLabel: { interval: 0, rotate: 30 }
             },
             yAxis: { type: 'value', name: '金额(元)' },
             series: [{
@@ -89,7 +84,6 @@
         };
         barChart.setOption(barOption);
 
-        // --- 3. 初始化饼图 ---
         var pieChart = echarts.init(document.getElementById('pieChart'));
         var pieOption = {
             tooltip: { trigger: 'item', formatter: '{a} <br/>{b} : {c}元 ({d}%)' },
@@ -97,7 +91,7 @@
             series: [{
                 name: '营业额占比',
                 type: 'pie',
-                radius: ['40%', '70%'], // 环形图更具现代感
+                radius: ['40%', '70%'],
                 avoidLabelOverlap: false,
                 itemStyle: { borderRadius: 10, borderColor: '#fff', borderWidth: 2 },
                 label: { show: false, position: 'center' },
@@ -110,7 +104,6 @@
         };
         pieChart.setOption(pieOption);
 
-        // --- 4. 响应式处理 ---
         window.addEventListener('resize', function() {
             barChart.resize();
             pieChart.resize();

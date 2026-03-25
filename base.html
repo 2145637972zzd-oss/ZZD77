@@ -6,11 +6,8 @@
     <title>校园食堂消费行为分析系统</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
 </head>
 <body data-page="{% block page_id %}index{% endblock %}">
@@ -28,11 +25,11 @@
                         <b class="text-dark">{{ session.get('username') }}</b>
                         <span class="user-role text-muted small ms-1">({{ session.get('role') }})</span>
                     </div>
-                    <a href="{{ url_for('main.logout') }}" class="btn btn-outline-danger btn-sm rounded-pill px-3">
+                    <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger btn-sm rounded-pill px-3">
                         <i class="fas fa-sign-out-alt"></i> 退出
                     </a>
                 {% else %}
-                    <a href="{{ url_for('main.login') }}" class="btn btn-primary btn-sm rounded-pill px-4">
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-sm rounded-pill px-4">
                         <i class="fas fa-sign-in-alt"></i> 登录系统
                     </a>
                 {% endif %}
@@ -45,35 +42,35 @@
         <aside class="sidebar p-3 bg-white rounded shadow-sm" style="width: 250px; min-height: 80vh;">
             <div class="sidebar-title text-muted small fw-bold px-3 mb-3 text-uppercase letter-spacing-1">分析模块</div>
             <nav class="nav flex-column gap-1">
-                <a href="{{ url_for('main.index') }}" class="nav-link text-dark rounded px-3 py-2 {% if request.endpoint == 'main.index' %}active bg-primary text-white{% endif %}">
+                <a href="{{ url_for('analysis.index') }}" class="nav-link text-dark rounded px-3 py-2 {% if request.endpoint == 'analysis.index' %}active bg-primary text-white{% endif %}">
                     <i class="fas fa-th-large fa-fw me-2"></i> 首页概览
                 </a>
-                <a href="{{ url_for('main.consumption_trend') }}" class="nav-link text-dark rounded px-3 py-2 {% if request.endpoint == 'main.consumption_trend' %}active bg-primary text-white{% endif %}">
+                <a href="{{ url_for('analysis.consumption_trend') }}" class="nav-link text-dark rounded px-3 py-2 {% if request.endpoint == 'analysis.consumption_trend' %}active bg-primary text-white{% endif %}">
                     <i class="fas fa-chart-line fa-fw me-2"></i> 消费趋势
                 </a>
-                <a href="{{ url_for('main.dish_hot') }}" class="nav-link text-dark rounded px-3 py-2 {% if request.endpoint == 'main.dish_hot' %}active bg-primary text-white{% endif %}">
+                <a href="{{ url_for('analysis.dish_hot') }}" class="nav-link text-dark rounded px-3 py-2 {% if request.endpoint == 'analysis.dish_hot' %}active bg-primary text-white{% endif %}">
                     <i class="fas fa-fire fa-fw me-2 text-danger"></i> 热销菜品
                 </a>
-                <a href="{{ url_for('main.dish_analysis') }}" class="nav-link text-dark rounded px-3 py-2 {% if request.endpoint == 'main.dish_analysis' %}active bg-primary text-white{% endif %}">
+                <a href="{{ url_for('analysis.dish_analysis') }}" class="nav-link text-dark rounded px-3 py-2 {% if request.endpoint == 'analysis.dish_analysis' %}active bg-primary text-white{% endif %}">
                     <i class="fas fa-project-diagram fa-fw me-2"></i> 关联分析
                 </a>
-                <a href="{{ url_for('main.forecast') }}" class="nav-link text-dark rounded px-3 py-2 {% if request.endpoint == 'main.forecast' %}active bg-primary text-white{% endif %}">
+                <a href="{{ url_for('analysis.forecast') }}" class="nav-link text-dark rounded px-3 py-2 {% if request.endpoint == 'analysis.forecast' %}active bg-primary text-white{% endif %}">
                     <i class="fas fa-magic fa-fw me-2" style="color: #6f42c1;"></i> 销量预测
                 </a>
-                <a href="{{ url_for('main.user_portrait') }}" class="nav-link text-dark rounded px-3 py-2 {% if request.endpoint == 'main.user_portrait' %}active bg-primary text-white{% endif %}">
+                <a href="{{ url_for('recommend.user_portrait') }}" class="nav-link text-dark rounded px-3 py-2 {% if request.endpoint == 'recommend.user_portrait' %}active bg-primary text-white{% endif %}">
                     <i class="fas fa-id-card fa-fw me-2"></i> 用户画像
                 </a>
-                <a href="{{ url_for('main.records') }}" class="nav-link text-dark rounded px-3 py-2 {% if request.endpoint == 'main.records' %}active bg-primary text-white{% endif %}">
+                <a href="{{ url_for('analysis.records') }}" class="nav-link text-dark rounded px-3 py-2 {% if request.endpoint == 'analysis.records' %}active bg-primary text-white{% endif %}">
                     <i class="fas fa-file-invoice-dollar fa-fw me-2"></i> 消费记录
                 </a>
-                <a href="{{ url_for('main.reports') }}" class="nav-link text-dark rounded px-3 py-2 {% if request.endpoint == 'main.reports' %}active bg-primary text-white{% endif %}">
+                <a href="{{ url_for('analysis.reports') }}" class="nav-link text-dark rounded px-3 py-2 {% if request.endpoint == 'analysis.reports' %}active bg-primary text-white{% endif %}">
                     <i class="fas fa-chart-bar fa-fw me-2"></i> 数据报表
                 </a>
 
                 <hr class="my-2">
 
                 <div class="sidebar-title text-muted small fw-bold px-3 mb-2 text-uppercase letter-spacing-1">智能应用</div>
-                <a href="{{ url_for('main.recommend') }}" class="nav-link text-dark rounded px-3 py-2 {% if request.endpoint == 'main.recommend' %}active bg-primary text-white{% endif %}">
+                <a href="{{ url_for('recommend.recommend_view') }}" class="nav-link text-dark rounded px-3 py-2 {% if request.endpoint == 'recommend.recommend_view' %}active bg-primary text-white{% endif %}">
                     <i class="fas fa-star fa-fw me-2 text-warning"></i> 猜你喜欢
                 </a>
             </nav>

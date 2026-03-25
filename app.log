@@ -8047,3 +8047,145 @@ FROM dish_info INNER JOIN consume_record ON find_in_set(dish_info.dish_id, consu
 2026-03-23 15:25:24,128 - sqlalchemy.engine.Engine - INFO - COMMIT
 2026-03-23 15:25:24,137 - werkzeug - WARNING -  * Debugger is active!
 2026-03-23 15:25:24,140 - werkzeug - INFO -  * Debugger PIN: 334-222-310
+2026-03-23 15:46:42,053 - werkzeug - INFO -  * Detected change in 'E:\\python\\pycharm\\pythonProject\\config.py', reloading
+2026-03-23 15:46:42,472 - werkzeug - INFO -  * Detected change in 'E:\\python\\Lib\\site-packages\\alembic\\__init__.py', reloading
+2026-03-23 15:46:43,251 - werkzeug - INFO -  * Restarting with watchdog (windowsapi)
+2026-03-23 15:46:45,706 - sqlalchemy.engine.Engine - INFO - SELECT DATABASE()
+2026-03-23 15:46:45,706 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 15:46:45,706 - sqlalchemy.engine.Engine - INFO - SHOW VARIABLES LIKE 'sql_mode'
+2026-03-23 15:46:45,706 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 15:46:45,707 - sqlalchemy.engine.Engine - INFO - SHOW VARIABLES LIKE 'lower_case_table_names'
+2026-03-23 15:46:45,707 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 15:46:45,708 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-03-23 15:46:45,708 - sqlalchemy.engine.Engine - INFO - DESCRIBE `campus_canteen_analysis`.`sys_user`
+2026-03-23 15:46:45,708 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 15:46:45,710 - sqlalchemy.engine.Engine - INFO - DESCRIBE `campus_canteen_analysis`.`user_info`
+2026-03-23 15:46:45,711 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 15:46:45,713 - sqlalchemy.engine.Engine - INFO - DESCRIBE `campus_canteen_analysis`.`canteen_info`
+2026-03-23 15:46:45,713 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 15:46:45,714 - sqlalchemy.engine.Engine - INFO - DESCRIBE `campus_canteen_analysis`.`canteen_window`
+2026-03-23 15:46:45,714 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 15:46:45,716 - sqlalchemy.engine.Engine - INFO - DESCRIBE `campus_canteen_analysis`.`dish_info`
+2026-03-23 15:46:45,716 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 15:46:45,718 - sqlalchemy.engine.Engine - INFO - DESCRIBE `campus_canteen_analysis`.`meal_config`
+2026-03-23 15:46:45,718 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 15:46:45,720 - sqlalchemy.engine.Engine - INFO - DESCRIBE `campus_canteen_analysis`.`consume_record`
+2026-03-23 15:46:45,720 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 15:46:45,723 - sqlalchemy.engine.Engine - INFO - DESCRIBE `campus_canteen_analysis`.`sys_log`
+2026-03-23 15:46:45,723 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 15:46:45,724 - sqlalchemy.engine.Engine - INFO - COMMIT
+2026-03-23 15:46:45,733 - werkzeug - WARNING -  * Debugger is active!
+2026-03-23 15:46:45,735 - werkzeug - INFO -  * Debugger PIN: 334-222-310
+2026-03-23 16:00:17,956 - werkzeug - INFO -  * Detected change in 'E:\\python\\pycharm\\pythonProject\\app\\utils\\common.py', reloading
+2026-03-23 16:00:18,336 - werkzeug - INFO -  * Detected change in 'E:\\python\\Lib\\site-packages\\flask\\json\\__init__.py', reloading
+2026-03-23 16:00:18,841 - werkzeug - INFO -  * Restarting with watchdog (windowsapi)
+2026-03-23 16:00:20,799 - sqlalchemy.engine.Engine - INFO - SELECT DATABASE()
+2026-03-23 16:00:20,799 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 16:00:20,800 - sqlalchemy.engine.Engine - INFO - SHOW VARIABLES LIKE 'sql_mode'
+2026-03-23 16:00:20,800 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 16:00:20,801 - sqlalchemy.engine.Engine - INFO - SHOW VARIABLES LIKE 'lower_case_table_names'
+2026-03-23 16:00:20,801 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 16:00:20,802 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-03-23 16:00:20,802 - sqlalchemy.engine.Engine - INFO - DESCRIBE `campus_canteen_analysis`.`sys_user`
+2026-03-23 16:00:20,802 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 16:00:20,804 - sqlalchemy.engine.Engine - INFO - DESCRIBE `campus_canteen_analysis`.`user_info`
+2026-03-23 16:00:20,805 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 16:00:20,808 - sqlalchemy.engine.Engine - INFO - DESCRIBE `campus_canteen_analysis`.`canteen_info`
+2026-03-23 16:00:20,808 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 16:00:20,810 - sqlalchemy.engine.Engine - INFO - DESCRIBE `campus_canteen_analysis`.`canteen_window`
+2026-03-23 16:00:20,810 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 16:00:20,812 - sqlalchemy.engine.Engine - INFO - DESCRIBE `campus_canteen_analysis`.`dish_info`
+2026-03-23 16:00:20,813 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 16:00:20,815 - sqlalchemy.engine.Engine - INFO - DESCRIBE `campus_canteen_analysis`.`meal_config`
+2026-03-23 16:00:20,815 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 16:00:20,817 - sqlalchemy.engine.Engine - INFO - DESCRIBE `campus_canteen_analysis`.`consume_record`
+2026-03-23 16:00:20,818 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 16:00:20,820 - sqlalchemy.engine.Engine - INFO - DESCRIBE `campus_canteen_analysis`.`sys_log`
+2026-03-23 16:00:20,820 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 16:00:20,822 - sqlalchemy.engine.Engine - INFO - COMMIT
+2026-03-23 16:00:20,830 - werkzeug - WARNING -  * Debugger is active!
+2026-03-23 16:00:20,832 - werkzeug - INFO -  * Debugger PIN: 334-222-310
+2026-03-23 16:00:23,622 - werkzeug - INFO -  * Detected change in 'E:\\python\\pycharm\\pythonProject\\app\\utils\\data_cleaning.py', reloading
+2026-03-23 16:00:24,373 - werkzeug - INFO -  * Restarting with watchdog (windowsapi)
+2026-03-23 16:00:26,311 - sqlalchemy.engine.Engine - INFO - SELECT DATABASE()
+2026-03-23 16:00:26,311 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 16:00:26,312 - sqlalchemy.engine.Engine - INFO - SHOW VARIABLES LIKE 'sql_mode'
+2026-03-23 16:00:26,312 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 16:00:26,313 - sqlalchemy.engine.Engine - INFO - SHOW VARIABLES LIKE 'lower_case_table_names'
+2026-03-23 16:00:26,313 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 16:00:26,313 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-03-23 16:00:26,313 - sqlalchemy.engine.Engine - INFO - DESCRIBE `campus_canteen_analysis`.`sys_user`
+2026-03-23 16:00:26,313 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 16:00:26,316 - sqlalchemy.engine.Engine - INFO - DESCRIBE `campus_canteen_analysis`.`user_info`
+2026-03-23 16:00:26,316 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 16:00:26,318 - sqlalchemy.engine.Engine - INFO - DESCRIBE `campus_canteen_analysis`.`canteen_info`
+2026-03-23 16:00:26,318 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 16:00:26,319 - sqlalchemy.engine.Engine - INFO - DESCRIBE `campus_canteen_analysis`.`canteen_window`
+2026-03-23 16:00:26,320 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 16:00:26,321 - sqlalchemy.engine.Engine - INFO - DESCRIBE `campus_canteen_analysis`.`dish_info`
+2026-03-23 16:00:26,321 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 16:00:26,323 - sqlalchemy.engine.Engine - INFO - DESCRIBE `campus_canteen_analysis`.`meal_config`
+2026-03-23 16:00:26,323 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 16:00:26,325 - sqlalchemy.engine.Engine - INFO - DESCRIBE `campus_canteen_analysis`.`consume_record`
+2026-03-23 16:00:26,325 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 16:00:26,327 - sqlalchemy.engine.Engine - INFO - DESCRIBE `campus_canteen_analysis`.`sys_log`
+2026-03-23 16:00:26,327 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 16:00:26,329 - sqlalchemy.engine.Engine - INFO - COMMIT
+2026-03-23 16:00:26,337 - werkzeug - WARNING -  * Debugger is active!
+2026-03-23 16:00:26,338 - werkzeug - INFO -  * Debugger PIN: 334-222-310
+2026-03-23 16:03:42,393 - werkzeug - INFO -  * Detected change in 'E:\\python\\pycharm\\pythonProject\\app\\utils\\visualization.py', reloading
+2026-03-23 16:03:43,091 - werkzeug - INFO -  * Restarting with watchdog (windowsapi)
+2026-03-23 16:03:45,029 - sqlalchemy.engine.Engine - INFO - SELECT DATABASE()
+2026-03-23 16:03:45,029 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 16:03:45,029 - sqlalchemy.engine.Engine - INFO - SHOW VARIABLES LIKE 'sql_mode'
+2026-03-23 16:03:45,030 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 16:03:45,030 - sqlalchemy.engine.Engine - INFO - SHOW VARIABLES LIKE 'lower_case_table_names'
+2026-03-23 16:03:45,030 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 16:03:45,031 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-03-23 16:03:45,031 - sqlalchemy.engine.Engine - INFO - DESCRIBE `campus_canteen_analysis`.`sys_user`
+2026-03-23 16:03:45,031 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 16:03:45,033 - sqlalchemy.engine.Engine - INFO - DESCRIBE `campus_canteen_analysis`.`user_info`
+2026-03-23 16:03:45,033 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 16:03:45,035 - sqlalchemy.engine.Engine - INFO - DESCRIBE `campus_canteen_analysis`.`canteen_info`
+2026-03-23 16:03:45,035 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 16:03:45,037 - sqlalchemy.engine.Engine - INFO - DESCRIBE `campus_canteen_analysis`.`canteen_window`
+2026-03-23 16:03:45,037 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 16:03:45,039 - sqlalchemy.engine.Engine - INFO - DESCRIBE `campus_canteen_analysis`.`dish_info`
+2026-03-23 16:03:45,039 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 16:03:45,041 - sqlalchemy.engine.Engine - INFO - DESCRIBE `campus_canteen_analysis`.`meal_config`
+2026-03-23 16:03:45,042 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 16:03:45,043 - sqlalchemy.engine.Engine - INFO - DESCRIBE `campus_canteen_analysis`.`consume_record`
+2026-03-23 16:03:45,043 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 16:03:45,045 - sqlalchemy.engine.Engine - INFO - DESCRIBE `campus_canteen_analysis`.`sys_log`
+2026-03-23 16:03:45,046 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 16:03:45,048 - sqlalchemy.engine.Engine - INFO - COMMIT
+2026-03-23 16:03:45,055 - werkzeug - WARNING -  * Debugger is active!
+2026-03-23 16:03:45,057 - werkzeug - INFO -  * Debugger PIN: 334-222-310
+2026-03-23 16:26:43,069 - werkzeug - INFO -  * Detected change in 'E:\\python\\pycharm\\PyCharm Community Edition 2022.3.3\\plugins\\python-ce\\helpers\\pycodestyle.py', reloading
+2026-03-23 16:26:44,117 - werkzeug - INFO -  * Restarting with watchdog (windowsapi)
+2026-03-23 16:26:46,211 - sqlalchemy.engine.Engine - INFO - SELECT DATABASE()
+2026-03-23 16:26:46,211 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 16:26:46,211 - sqlalchemy.engine.Engine - INFO - SHOW VARIABLES LIKE 'sql_mode'
+2026-03-23 16:26:46,211 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 16:26:46,216 - sqlalchemy.engine.Engine - INFO - SHOW VARIABLES LIKE 'lower_case_table_names'
+2026-03-23 16:26:46,216 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 16:26:46,216 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-03-23 16:26:46,216 - sqlalchemy.engine.Engine - INFO - DESCRIBE `campus_canteen_analysis`.`sys_user`
+2026-03-23 16:26:46,216 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 16:26:46,216 - sqlalchemy.engine.Engine - INFO - DESCRIBE `campus_canteen_analysis`.`user_info`
+2026-03-23 16:26:46,216 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 16:26:46,221 - sqlalchemy.engine.Engine - INFO - DESCRIBE `campus_canteen_analysis`.`canteen_info`
+2026-03-23 16:26:46,221 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 16:26:46,221 - sqlalchemy.engine.Engine - INFO - DESCRIBE `campus_canteen_analysis`.`canteen_window`
+2026-03-23 16:26:46,221 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 16:26:46,226 - sqlalchemy.engine.Engine - INFO - DESCRIBE `campus_canteen_analysis`.`dish_info`
+2026-03-23 16:26:46,226 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 16:26:46,226 - sqlalchemy.engine.Engine - INFO - DESCRIBE `campus_canteen_analysis`.`meal_config`
+2026-03-23 16:26:46,226 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 16:26:46,231 - sqlalchemy.engine.Engine - INFO - DESCRIBE `campus_canteen_analysis`.`consume_record`
+2026-03-23 16:26:46,231 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 16:26:46,231 - sqlalchemy.engine.Engine - INFO - DESCRIBE `campus_canteen_analysis`.`sys_log`
+2026-03-23 16:26:46,231 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2026-03-23 16:26:46,231 - sqlalchemy.engine.Engine - INFO - COMMIT
+2026-03-23 16:26:46,241 - werkzeug - WARNING -  * Debugger is active!
+2026-03-23 16:26:46,241 - werkzeug - INFO -  * Debugger PIN: 334-222-310
