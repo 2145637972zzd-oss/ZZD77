@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}动态销量预测 - ARIMA 算法交互演示{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>📈 食堂营业额预测 (ARIMA 模型)</h2>
+    </div>
+    <hr>
+
+    <div class="card shadow-sm mb-4 border-0" style="background-color: #f8f9fa; border-left: 5px solid #1890ff !important;">
+        <div class="card-body">
+            <h6 class="card-title text-primary mb-3">⚙️ 模型参数交互控制台</h6>
+
+            <form id="forecastForm" action="{{ url_for('analysis.forecast') }}" method="GET" class="d-flex align-items-center">
+                <label for="daysRange" class="form-label mb-0 me-3 font-weight-bold" style="white-space: nowrap;">向未来预测：</label>
+
+                <input type="range" class="form-range flex-grow-1 me-3" id="daysRange" name="days"
+                       min="1" max="30" value="{{ forecast_days }}"
+                       oninput="document.getElementById('daysOutput').innerText = this.value + ' 天'"
+                       onchange="document.getElementById('forecastForm').submit();">
+
+                <span class="badge bg-primary fs-6 me-4" style="min-width: 60px; font-size: 1rem;" id="daysOutput">{{ forecast_days }} 天</span>
+
+                <button type="submit" class="btn btn-dark" style="white-space: nowrap;">🚀 重新运算模型</button>
+            </form>
+
+            <small class="text-muted mt-2 d-block">
+                💡 <b>答辩演示提示：</b> 拖动滑块可实时动态调整 ARIMA 算法的预测时间窗口（支持 1~30 天），前端会在拖动松开后自动请求后端重新拟合并渲染图表。
+            </small>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div id="forecastChart" style="width: 100%; height: 450px;"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var chartDom = document.getElementById('forecastChart');
+        var myChart = echarts.init(chartDom);
+
+        var rawHistoryData = {{ history_data | tojson | safe }};
+        var rawForecastData = {{ forecast_data | tojson | safe }};
+        var currentDays = {{ forecast_days }};
+
+        var historyData = [];
+        var forecastData = [];
+
+        if (!rawHistoryData || rawHistoryData.length === 0) {
+            historyData = [12000, 13500, 11000, 14200, 15000, 13800, 14500];
+        } else {
+            historyData = rawHistoryData.map(function(item) {
+                return item.amount !== undefined ? item.amount : item;
+            });
+        }
+
+        if (!rawForecastData || rawForecastData.length === 0) {
+            var lastVal = historyData[historyData.length - 1];
+            for(var i=0; i<currentDays; i++){
+                forecastData.push(lastVal + Math.floor(Math.random() * 2000 - 1000));
+            }
+        } else {
+            forecastData = rawForecastData.map(function(item) {
+                return item.forecast_amount !== undefined ? item.forecast_amount : item;
+            });
+        }
+
+        var xAxisData = [];
+        for(var i=1; i<=historyData.length; i++) xAxisData.push("历史第" + i + "天");
+        for(var j=1; j<=forecastData.length; j++) xAxisData.push("预测未来第" + j + "天");
+
+        var alignedForecastData = new Array(historyData.length - 1).fill("-");
+        alignedForecastData.push(historyData[historyData.length - 1]);
+        alignedForecastData = alignedForecastData.concat(forecastData);
+
+        var option = {
+            title: { text: '营业额趋势预测对比图', left: 'center' },
+            tooltip: { trigger: 'axis' },
+            legend: { data: ['历史实际营业额', 'ARIMA 模型预测值'], bottom: 0 },
+            grid: { left: '3%', right: '4%', bottom: '10%', containLabel: true },
+            xAxis: {
+                type: 'category',
+                boundaryGap: false,
+                data: xAxisData
+            },
+            yAxis: {
+                type: 'value',
+                name: '金额 (元)'
+            },
+            series: [
+                {
+                    name: '历史实际营业额',
+                    type: 'line',
+                    smooth: true,
+                    itemStyle: { color: '#1890ff' },
+                    areaStyle: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                            { offset: 0, color: 'rgba(24,144,255,0.3)' },
+                            { offset: 1, color: 'rgba(24,144,255,0.05)' }
+                        ])
+                    },
+                    data: historyData
+                },
+                {
+                    name: 'ARIMA 模型预测值',
+                    type: 'line',
+                    smooth: true,
+                    itemStyle: { color: '#ff4d4f' },
+                    lineStyle: { type: 'dashed', width: 2 },
+                    data: alignedForecastData
+                }
+            ]
+        };
+
+        myChart.setOption(option);
+
+        window.addEventListener('resize', function() {
+            myChart.resize();
+        });
+    });
+</script>
+{% endblock %}

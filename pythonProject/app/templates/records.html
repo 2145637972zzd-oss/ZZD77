@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block page_id %}records{% endblock %}
+
+{% block content %}
+<div class="card mb-4 shadow-sm">
+    <div class="card-body pb-3">
+        <form action="{{ url_for('analysis.records') }}" method="GET" class="row g-3 align-items-end">
+            <input type="hidden" name="page_size" value="{{ page_size }}">
+
+            <div class="col-md-3">
+                <label for="canteen_id" class="form-label text-muted small fw-bold">选择食堂</label>
+                <select class="form-select" id="canteen_id" name="canteen_id">
+                    <option value="">-- 全部食堂 --</option>
+                    {% for c in canteens %}
+                        <option value="{{ c.id }}" {% if request.args.get('canteen_id')|string == c.id|string %}selected{% endif %}>
+                            {{ c.canteen_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label for="keyword" class="form-label text-muted small fw-bold">用户姓名</label>
+                <input type="text" class="form-control" id="keyword" name="keyword"
+                       value="{{ request.args.get('keyword', '') }}" placeholder="支持模糊搜索">
+            </div>
+
+            <div class="col-md-2">
+                <label for="start_date" class="form-label text-muted small fw-bold">开始日期</label>
+                <input type="date" class="form-control" id="start_date" name="start_date"
+                       value="{{ request.args.get('start_date', '') }}">
+            </div>
+
+            <div class="col-md-2">
+                <label for="end_date" class="form-label text-muted small fw-bold">结束日期</label>
+                <input type="date" class="form-control" id="end_date" name="end_date"
+                       value="{{ request.args.get('end_date', '') }}">
+            </div>
+
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search"></i> 查询数据
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-title d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-receipt"></i> 消费流水明细</span>
+        <span class="badge bg-secondary">共 {{ total_records }} 条</span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle text-center">
+            <thead class="table-light">
+                <tr>
+                    <th>交易单号</th>
+                    <th>用户ID</th>
+                    <th>用户姓名</th>
+                    <th>就餐食堂</th>
+                    <th>消费窗口</th>
+                    <th>支付金额(元)</th>
+                    <th>支付时间</th>
+                    <th>支付方式</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if records %}
+                    {% for record in records %}
+                    <tr>
+                        <td class="text-muted">#{{ record.record_id }}</td>
+                        <td>{{ record.user_id }}</td>
+                        <td class="fw-bold text-primary">{{ record.user_name }}</td>
+                        <td><span class="badge bg-info text-dark">{{ record.canteen_name }}</span></td>
+                        <td>{{ record.window_name }}</td>
+                        <td class="text-danger fw-bold">¥{{ "%.2f"|format(record.total_amount) }}</td>
+                        <td>{{ record.pay_time }}</td>
+                        <td>
+                            {% if record.pay_type == 'card' %}
+                                <span class="badge bg-secondary"><i class="bi bi-credit-card"></i> 校园卡</span>
+                            {% elif record.pay_type == 'wechat' %}
+                                <span class="badge bg-success"><i class="bi bi-wechat"></i> 微信</span>
+                            {% elif record.pay_type == 'alipay' %}
+                                <span class="badge bg-primary"><i class="bi bi-alipay"></i> 支付宝</span>
+                            {% else %}
+                                {{ record.pay_type }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center py-4 text-muted">没找到符合条件的消费记录</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if pages > 1 %}
+    <nav aria-label="Page navigation" class="mt-3">
+        <ul class="pagination justify-content-center">
+            {% set args = request.args.to_dict() %}
+
+            <li class="page-item {% if page == 1 %}disabled{% endif %}">
+                {% set _ = args.update({'page': page - 1}) %}
+                <a class="page-link" href="{{ url_for('analysis.records', **args) }}">上一页</a>
+            </li>
+
+            {% for p in range(1, pages + 1) %}
+                {% if p == 1 or p == pages or (p >= page - 2 and p <= page + 2) %}
+                    {% set _ = args.update({'page': p}) %}
+                    <li class="page-item {% if p == page %}active{% endif %}">
+                        <a class="page-link" href="{{ url_for('analysis.records', **args) }}">{{ p }}</a>
+                    </li>
+                {% elif p == 2 or p == pages - 1 %}
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                {% endif %}
+            {% endfor %}
+
+            <li class="page-item {% if page == pages %}disabled{% endif %}">
+                {% set _ = args.update({'page': page + 1}) %}
+                <a class="page-link" href="{{ url_for('analysis.records', **args) }}">下一页</a>
+            </li>
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

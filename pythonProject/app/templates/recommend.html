@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}猜你喜欢 - 个性化推荐{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>✨ 猜你喜欢 - 为你精选</h2>
+        <div>
+            <button onclick="window.location.reload()" class="btn btn-outline-primary btn-sm me-3">
+                🔄 换一批
+            </button>
+            <span class="badge bg-primary" style="font-size: 0.9rem;">当前体验用户 ID: {{ user_id }}</span>
+        </div>
+    </div>
+    <hr>
+
+    <div class="alert alert-info shadow-sm" role="alert">
+        <strong>💡 智能推荐引擎：</strong> 基于 <b>协同过滤 (Collaborative Filtering)</b> 算法，我们发现与您口味相似的同学最近经常品尝以下菜品，快来试试吧！
+    </div>
+
+    <div class="row mt-4">
+        {% if recommended_dishes %}
+            {% for dish in recommended_dishes %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm" style="border-radius: 10px; transition: transform 0.2s;">
+                    <div class="card-img-top bg-light d-flex justify-content-center align-items-center" style="height: 160px; border-top-left-radius: 10px; border-top-right-radius: 10px;">
+                        <span style="font-size: 4rem;">🍲</span>
+                    </div>
+                    
+                    <div class="card-body">
+                        <h5 class="card-title font-weight-bold text-dark">{{ dish.name }}</h5>
+                        <p class="card-text text-muted" style="font-size: 0.9rem;">
+                            <span class="text-warning">★</span> 推荐理由：{{ dish.reason }}
+                        </p>
+                    </div>
+                    
+                    <div class="card-footer bg-white border-top-0 d-flex justify-content-between align-items-center">
+                        <span class="text-danger font-weight-bold">去窗口看看 🏃</span>
+                        <button class="btn btn-outline-danger btn-sm" style="border-radius: 20px;">查看详情</button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12 text-center py-5">
+                <div style="font-size: 5rem; color: #dee2e6;">🍽️</div>
+                <h4 class="text-muted mt-3">暂无推荐数据</h4>
+                <p class="text-secondary">多去食堂吃几顿，系统才能更懂你的口味哦~</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+    }
+</style>
+{% endblock %}

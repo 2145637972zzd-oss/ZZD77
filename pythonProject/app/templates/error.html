@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card" style="text-align: center; padding: 60px 20px;">
+    <h1 style="font-size: 60px; color: #e74c3c; margin-bottom: 20px;">{{ code }}</h1>
+    <p style="font-size: 18px; color: #666; margin-bottom: 30px;">{{ msg }}</p>
+    <a href="{{ url_for('analysis.index') }}" style="display: inline-block; padding: 10px 25px; background-color: #3498db; color: #fff; text-decoration: none; border-radius: 4px;">返回首页</a>
+</div>
+{% endblock %}
