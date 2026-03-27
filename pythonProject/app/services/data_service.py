@@ -68,8 +68,8 @@ class DataService:
             CanteenInfo.canteen_name,
             func.sum(ConsumeRecord.total_amount).label('total_amount'),
             func.count(ConsumeRecord.record_id).label('order_count')
-        ).join(ConsumeRecord, ConsumeRecord.canteen_id == CanteenInfo.id  # 【修复】修改为 CanteenInfo.id
-               ).group_by(CanteenInfo.id).order_by(func.sum(ConsumeRecord.total_amount).desc()) # 【修复】修改为 CanteenInfo.id
+        ).join(ConsumeRecord, ConsumeRecord.canteen_id == CanteenInfo.id
+               ).group_by(CanteenInfo.id).order_by(func.sum(ConsumeRecord.total_amount).desc())
 
         result = query.all()
         return [{'canteen_name': r.canteen_name, 'total_amount': float(r.total_amount), 'order_count': r.order_count}
@@ -89,7 +89,7 @@ class DataService:
         return [{'dish_name': r.dish_name, 'sale_count': r.sale_count, 'sale_amount': float(r.sale_amount)} for r in
                 result]
 
-    # 获取消费记录分页列表
+    # 获取消费记录分页列表 (加入数据脱敏功能)
     @staticmethod
     def get_consume_record_list(page=1, page_size=20, canteen_id=None, keyword=None, start_date=None, end_date=None):
         query = db.session.query(
@@ -102,7 +102,7 @@ class DataService:
             CanteenInfo.canteen_name,
             CanteenWindow.window_name
         ).join(UserInfo, ConsumeRecord.user_id == UserInfo.user_id
-               ).join(CanteenInfo, ConsumeRecord.canteen_id == CanteenInfo.id  # 【修复】修改为 CanteenInfo.id
+               ).join(CanteenInfo, ConsumeRecord.canteen_id == CanteenInfo.id
                       ).join(CanteenWindow, ConsumeRecord.window_id == CanteenWindow.window_id)
 
         if canteen_id:
@@ -120,10 +120,17 @@ class DataService:
         records = []
 
         for item in pagination.items:
+            raw_user_id = str(item[1])
+            raw_name = str(item[5])
+
+            # 【高级功能：数据脱敏】保护学生隐私
+            masked_id = raw_user_id[:3] + '****' + raw_user_id[-2:] if len(raw_user_id) > 5 else raw_user_id + '***'
+            masked_name = raw_name[0] + '*' + (raw_name[-1] if len(raw_name) > 2 else '')
+
             records.append({
                 'record_id': item[0],
-                'user_id': item[1],
-                'user_name': item[5],
+                'user_id': masked_id,  # 显示脱敏学号
+                'user_name': masked_name,  # 显示脱敏姓名
                 'canteen_name': item[6],
                 'window_name': item[7],
                 'total_amount': float(item[2]),

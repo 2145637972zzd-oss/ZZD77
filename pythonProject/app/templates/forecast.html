@@ -11,6 +11,13 @@
 
     <div class="card shadow-sm mb-4 border-0" style="background-color: #f8f9fa; border-left: 5px solid #1890ff !important;">
         <div class="card-body">
+            <div class="alert alert-warning d-flex align-items-center" role="alert">
+                <i class="fas fa-exclamation-triangle fa-2x me-3 text-warning"></i>
+                <div>
+                    <h6 class="alert-heading fw-bold mb-1">库存采购预警与反浪费提示 (AI 判定)</h6>
+                    <p class="mb-0 small">根据 SARIMAX 模型时序预测，若预测期内日均营业额呈现<b class="text-danger">下降趋势</b>，系统建议食堂档口：<strong>按预测降幅同比例减少生鲜食材采购量（特别是绿叶蔬菜和保质期短的肉类），积极响应国家“光盘行动”号召，避免食材积压浪费。</strong></p>
+                </div>
+            </div>
             <h6 class="card-title text-primary mb-3">⚙️ 模型参数交互控制台</h6>
 
             <form id="forecastForm" action="{{ url_for('analysis.forecast') }}" method="GET" class="d-flex align-items-center">

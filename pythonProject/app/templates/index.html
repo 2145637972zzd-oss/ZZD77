@@ -63,6 +63,7 @@
         font-size: 32px;
         font-weight: bold;
         letter-spacing: 1px;
+        transition: color 0.3s;
     }
 
     /* 卡片右侧背景大图标（半透明） */
@@ -78,7 +79,7 @@
 
     /* 图表容器面板样式 */
     .chart-panel {
-        background: #fff; /* 如果 base.html 是暗黑模式，这里可以改成 rgba(255,255,255,0.05) */
+        background: #fff;
         border-radius: 16px;
         padding: 20px;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
@@ -89,7 +90,7 @@
     .panel-title {
         font-size: 18px;
         font-weight: 600;
-        color: #333; /* 暗黑模式可改为 #eee */
+        color: #333;
         margin-bottom: 20px;
         padding-left: 12px;
         border-left: 4px solid #4facfe;
@@ -100,7 +101,7 @@
 
     .chart-container {
         width: 100%;
-        height: 350px; /* 统一下方图表高度 */
+        height: 350px;
     }
 
     /* 下方双列图表网格 */
@@ -170,9 +171,32 @@
     window.canteenData = {{ canteen_data | default([], true) | tojson }};
     window.hotDishData = {{ hot_dish | default([], true) | tojson }};
 
-    // 如果你在 base.html 中没有引入 FontAwesome，请确保在 base.html 的 <head> 中加入这行：
-    // <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    // 【高级功能：前端大屏伪实时动态刷新】
+    // 模拟 websocket 实时订单数据流
+    setInterval(function() {
+        // 获取页面上的 DOM 元素
+        let amountEl = document.querySelector('.stat-card:nth-child(1) .stat-value');
+        let orderEl = document.querySelector('.stat-card:nth-child(2) .stat-value');
 
-    // (此处原有的 ECharts 初始化逻辑不受影响，直接读取 window 对象中的数据进行渲染)
+        if (amountEl && orderEl) {
+            // 解析当前数值
+            let currentAmount = parseFloat(amountEl.innerText.replace('¥', '').replace(/,/g, ''));
+            let currentOrder = parseInt(orderEl.innerText.replace(/,/g, ''));
+
+            // 模拟随机产生的新订单 (每 5 秒可能增加 1-3 单，金额增加 10-50 元)
+            let newOrders = Math.floor(Math.random() * 4);
+            if (newOrders > 0) {
+                let newAmount = currentAmount + (Math.random() * 40 + 10);
+
+                // 炫酷的数字跳动更新
+                amountEl.innerText = '¥ ' + newAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                orderEl.innerText = (currentOrder + newOrders).toLocaleString();
+
+                // 给元素加一个高亮闪烁效果
+                amountEl.style.color = '#ffd700';
+                setTimeout(() => { amountEl.style.color = 'white'; }, 500);
+            }
+        }
+    }, 5000);
 </script>
 {% endblock %}

@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block page_id %}manage-window{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="fas fa-store text-warning"></i> 窗口(档口)信息管理</h5>
+        <button class="btn btn-warning btn-sm text-dark fw-bold" data-bs-toggle="modal" data-bs-target="#addWindowModal">
+            <i class="fas fa-plus"></i> 新增窗口
+        </button>
+    </div>
+    
+    <div class="card-body">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-success py-2">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>窗口ID</th>
+                    <th>所属食堂</th>
+                    <th>窗口名称</th>
+                    <th>主营类型</th>
+                    <th>负责人</th>
+                    <th>状态</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for window, canteen in windows %}
+                <tr>
+                    <td class="text-muted">{{ window.window_id }}</td>
+                    <td><span class="badge bg-primary">{{ canteen.canteen_name if canteen else '未知食堂' }}</span></td>
+                    <td class="fw-bold text-dark">{{ window.window_name }}</td>
+                    <td>{{ window.window_type }}</td>
+                    <td>{{ window.manager or '暂无' }}</td>
+                    <td><span class="badge bg-success">营业中</span></td>
+                    <td>
+                        <a href="{{ url_for('manage.delete_window', window_id=window.window_id) }}" 
+                           class="btn btn-sm btn-outline-danger" 
+                           onclick="return confirm('确定要删除【{{ window.window_name }}】吗？其下属的菜品可能会受影响！');">删除</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="addWindowModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form action="{{ url_for('manage.add_window') }}" method="POST" class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">新增营业窗口</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">所属食堂</label>
+                    <select name="canteen_id" class="form-select" required>
+                        <option value="">-- 请选择所属食堂 --</option>
+                        {% for c in canteens %}
+                            <option value="{{ c.id }}">{{ c.canteen_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">窗口名称</label>
+                    <input type="text" name="window_name" class="form-control" required placeholder="如：特色拉面窗口">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">主营类型</label>
+                    <select name="window_type" class="form-select">
+                        <option value="快餐">快餐</option>
+                        <option value="粉面">粉面</option>
+                        <option value="特色餐">特色餐</option>
+                        <option value="小吃">小吃</option>
+                        <option value="饮品">饮品</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">负责人姓名 (选填)</label>
+                    <input type="text" name="manager" class="form-control" placeholder="如：李师傅">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="submit" class="btn btn-warning text-dark fw-bold">确认添加</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

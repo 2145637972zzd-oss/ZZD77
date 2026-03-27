@@ -2,7 +2,8 @@ import pandas as pd
 from mlxtend.preprocessing import TransactionEncoder
 from mlxtend.frequent_patterns import fpgrowth, association_rules
 from app.services.data_service import data_service
-from app.utils.models import DishInfo
+# 【修复】使用正确的模型导入路径
+from app.models import DishInfo
 from app import db
 
 

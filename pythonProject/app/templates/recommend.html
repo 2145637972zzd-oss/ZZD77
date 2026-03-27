@@ -1,50 +1,53 @@
 {% extends "base.html" %}
 
-{% block title %}猜你喜欢 - 个性化推荐{% endblock %}
+{% block title %}个性化推荐与点餐{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>✨ 猜你喜欢 - 为你精选</h2>
+        <h2>✨ 猜你喜欢 - 智能膳食推荐</h2>
         <div>
             <button onclick="window.location.reload()" class="btn btn-outline-primary btn-sm me-3">
                 🔄 换一批
             </button>
-            <span class="badge bg-primary" style="font-size: 0.9rem;">当前体验用户 ID: {{ user_id }}</span>
+            <span class="badge bg-primary" style="font-size: 0.9rem;">当前同学: {{ username }}</span>
         </div>
     </div>
     <hr>
 
     <div class="alert alert-info shadow-sm" role="alert">
-        <strong>💡 智能推荐引擎：</strong> 基于 <b>协同过滤 (Collaborative Filtering)</b> 算法，我们发现与您口味相似的同学最近经常品尝以下菜品，快来试试吧！
+        <strong>💡 协同过滤与健康计算引擎：</strong> 根据您与相似口味同学的消费数据，结合卡路里摄入模型，为您精选以下菜品。
     </div>
 
     <div class="row mt-4">
         {% if recommended_dishes %}
             {% for dish in recommended_dishes %}
             <div class="col-md-4 mb-4">
-                <div class="card h-100 shadow-sm" style="border-radius: 10px; transition: transform 0.2s;">
-                    <div class="card-img-top bg-light d-flex justify-content-center align-items-center" style="height: 160px; border-top-left-radius: 10px; border-top-right-radius: 10px;">
-                        <span style="font-size: 4rem;">🍲</span>
-                    </div>
-                    
+                <div class="card h-100 shadow-sm" style="border-radius: 12px; transition: transform 0.2s;">
                     <div class="card-body">
-                        <h5 class="card-title font-weight-bold text-dark">{{ dish.name }}</h5>
-                        <p class="card-text text-muted" style="font-size: 0.9rem;">
-                            <span class="text-warning">★</span> 推荐理由：{{ dish.reason }}
-                        </p>
+                        <h4 class="card-title font-weight-bold text-dark">{{ dish.name }}</h4>
+
+                        <div class="mt-2 mb-3">
+                            <span class="badge bg-success me-1">🔥 {{ dish.calories }} 千卡</span>
+                            <span class="badge bg-info text-dark">🥩 蛋白质 {{ dish.protein }}g</span>
+                        </div>
+
+                        <h3 class="text-danger fw-bold">¥{{ "%.2f"|format(dish.price) }}</h3>
+                        <p class="card-text text-muted small mt-2">{{ dish.reason }}</p>
                     </div>
-                    
-                    <div class="card-footer bg-white border-top-0 d-flex justify-content-between align-items-center">
-                        <span class="text-danger font-weight-bold">去窗口看看 🏃</span>
-                        <button class="btn btn-outline-danger btn-sm" style="border-radius: 20px;">查看详情</button>
+
+                    <div class="card-footer bg-white border-top-0 d-flex justify-content-between align-items-center pb-3">
+                        <button class="btn btn-outline-secondary btn-sm" style="border-radius: 20px;">查看详情</button>
+                        <button class="btn btn-danger btn-sm px-4 fw-bold" style="border-radius: 20px; box-shadow: 0 4px 10px rgba(220,53,69,0.3);"
+                                onclick="simulateBuy({{ dish.id }}, '{{ dish.name }}')">
+                            <i class="fas fa-utensils"></i> 一键下单
+                        </button>
                     </div>
                 </div>
             </div>
             {% endfor %}
         {% else %}
             <div class="col-12 text-center py-5">
-                <div style="font-size: 5rem; color: #dee2e6;">🍽️</div>
                 <h4 class="text-muted mt-3">暂无推荐数据</h4>
                 <p class="text-secondary">多去食堂吃几顿，系统才能更懂你的口味哦~</p>
             </div>
@@ -52,10 +55,29 @@
     </div>
 </div>
 
-<style>
-    .card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
-    }
-</style>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+function simulateBuy(dishId, dishName) {
+    Swal.fire({
+        title: '确认下单?',
+        text: "将从您的校园卡扣除对应金额",
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: '确认刷卡',
+        cancelButtonText: '再看看'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch('/simulate_buy/' + dishId, { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if(data.code === 200) {
+                    Swal.fire('打饭成功！', data.msg, 'success');
+                }
+            });
+        }
+    })
+}
+</script>
 {% endblock %}
