@@ -14,10 +14,8 @@ manage_bp = Blueprint('manage', __name__, url_prefix='/manage')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 UPLOAD_BASE_DIR = 'app/static/uploads'
 
-
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
 
 def save_image(file, sub_folder):
     if file and allowed_file(file.filename):
@@ -33,14 +31,12 @@ def save_image(file, sub_folder):
         return f'/static/uploads/{sub_folder}/{filename}'
     return None
 
-
 # ================== 1. 食堂管理 ==================
 @manage_bp.route('/canteens')
 @login_required
 def canteens():
     canteen_list = db.session.query(CanteenInfo).all()
     return render_template('manage_canteen.html', canteens=canteen_list)
-
 
 @manage_bp.route('/canteens/add', methods=['POST'])
 @login_required
@@ -62,8 +58,7 @@ def add_canteen():
         flash("食堂添加成功！")
     return redirect(url_for('manage.canteens'))
 
-
-# 修改食堂信息与图片（支持删除图片）
+# 修改食堂信息与图片（支持删除图片恢复默认）
 @manage_bp.route('/canteens/edit/<int:canteen_id>', methods=['POST'])
 @login_required
 def edit_canteen(canteen_id):
@@ -78,12 +73,11 @@ def edit_canteen(canteen_id):
         if 'image_file' in request.files:
             uploaded_path = save_image(request.files['image_file'], 'canteens')
             if uploaded_path:
-                canteen.image_url = uploaded_path  # 覆盖新图片
+                canteen.image_url = uploaded_path
 
     db.session.commit()
     flash("食堂信息修改成功！")
     return redirect(url_for('manage.canteens'))
-
 
 @manage_bp.route('/canteens/delete/<int:canteen_id>')
 @login_required
@@ -95,7 +89,6 @@ def delete_canteen(canteen_id):
         flash("食堂删除成功！")
     return redirect(url_for('manage.canteens'))
 
-
 # ================== 2. 窗口(档口)管理 ==================
 @manage_bp.route('/windows')
 @login_required
@@ -104,7 +97,6 @@ def windows():
         CanteenInfo, CanteenWindow.canteen_id == CanteenInfo.id).all()
     canteens = db.session.query(CanteenInfo).all()
     return render_template('manage_window.html', windows=window_list, canteens=canteens)
-
 
 @manage_bp.route('/windows/add', methods=['POST'])
 @login_required
@@ -127,7 +119,6 @@ def add_window():
 
     return redirect(url_for('manage.windows'))
 
-
 @manage_bp.route('/windows/delete/<int:window_id>')
 @login_required
 def delete_window(window_id):
@@ -138,7 +129,6 @@ def delete_window(window_id):
         flash("窗口删除成功！")
     return redirect(url_for('manage.windows'))
 
-
 # ================== 3. 菜品管理 ==================
 @manage_bp.route('/dishes')
 @login_required
@@ -147,7 +137,6 @@ def dishes():
         CanteenWindow, DishInfo.window_id == CanteenWindow.window_id).all()
     windows = db.session.query(CanteenWindow).all()
     return render_template('manage_dish.html', dishes=dish_list, windows=windows)
-
 
 @manage_bp.route('/dishes/add', methods=['POST'])
 @login_required
@@ -171,8 +160,7 @@ def add_dish():
         flash("菜品上架成功！")
     return redirect(url_for('manage.dishes'))
 
-
-# 修改菜品信息与图片（支持删除图片）
+# 修改菜品信息与图片（支持删除图片恢复默认）
 @manage_bp.route('/dishes/edit/<int:dish_id>', methods=['POST'])
 @login_required
 def edit_dish(dish_id):
@@ -188,12 +176,11 @@ def edit_dish(dish_id):
         if 'image_file' in request.files:
             uploaded_path = save_image(request.files['image_file'], 'dishes')
             if uploaded_path:
-                dish.image_url = uploaded_path  # 覆盖新图片
+                dish.image_url = uploaded_path
 
     db.session.commit()
     flash("菜品修改成功！")
     return redirect(url_for('manage.dishes'))
-
 
 @manage_bp.route('/dishes/delete/<int:dish_id>')
 @login_required
@@ -205,7 +192,6 @@ def delete_dish(dish_id):
         flash("菜品下架成功！")
     return redirect(url_for('manage.dishes'))
 
-
 # ================== 4. 数据源切换调度中心 ==================
 @manage_bp.route('/data_source')
 @login_required
@@ -214,15 +200,14 @@ def data_source():
     data_dir = os.path.join(base_dir, 'data')
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
-
+        
     csv_files = [f for f in os.listdir(data_dir) if f.endswith('.csv')]
     current_csv_name = os.path.basename(DataService.CSV_PATH) if DataService.CSV_PATH else None
-
-    return render_template('manage_data.html',
-                           current_mode=DataService.MODE,
+    
+    return render_template('manage_data.html', 
+                           current_mode=DataService.MODE, 
                            current_csv=current_csv_name,
                            csv_files=csv_files)
-
 
 @manage_bp.route('/data_source/switch/<mode>', methods=['POST'])
 @login_required
@@ -239,7 +224,6 @@ def switch_data_source(mode):
             DataService.MODE = 'csv'
             flash(f"⚡ 模式切换成功：当前系统正在读取外部数据集【{filename}】！")
     return redirect(url_for('manage.data_source'))
-
 
 @manage_bp.route('/data_source/upload', methods=['POST'])
 @login_required
