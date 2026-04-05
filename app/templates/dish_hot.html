@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block page_id %}dish-hot{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h4 class="mb-0 text-primary border-start border-4 border-primary ps-2">热销菜品分析</h4>
+        <p class="text-muted mt-2">基于海量消费订单，深度挖掘最受师生欢迎的食堂美食。</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-7 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="fas fa-chart-bar text-danger"></i> 菜品销量 TOP 10</h6>
+            </div>
+            <div class="card-body">
+                <div id="hotDishChart" style="height: 400px; width: 100%;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="fas fa-list-ol text-warning"></i> 热销榜单明细</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-3">排名</th>
+                                <th>图片</th>
+                                <th>菜品名称</th>
+                                <th>销量 (份)</th>
+                                <th>销售额 (元)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in hot_dishes %}
+                            <tr>
+                                <td class="ps-3">
+                                    {% if loop.index <= 3 %}
+                                        <span class="badge bg-danger rounded-pill" style="width:25px">{{ loop.index }}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary rounded-pill" style="width:25px">{{ loop.index }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <img src="{{ item.image_url or '/static/images/default_dish.jpg' }}" alt="菜品图片" style="width: 45px; height: 45px; object-fit: cover; border-radius: 8px; border: 1px solid #eee;">
+                                </td>
+                                <td class="fw-bold">{{ item.dish_name }}</td>
+                                <td class="text-primary">{{ item.sale_count }}</td>
+                                <td class="text-success">¥{{ "%.2f"|format(item.sale_amount) }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-muted">暂无热销数据</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    var hotData = {{ hot_dishes|tojson|safe }};
+    if (hotData && hotData.length > 0) {
+        var names = hotData.map(item => item.dish_name);
+        var counts = hotData.map(item => item.sale_count);
+
+        var myChart = echarts.init(document.getElementById('hotDishChart'));
+        var option = {
+            tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+            grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+            xAxis: {
+                type: 'value',
+                name: '销量(份)',
+                splitLine: { lineStyle: { type: 'dashed', color: '#eee' } }
+            },
+            yAxis: {
+                type: 'category',
+                data: names.reverse(),
+                axisLabel: { fontWeight: 'bold' }
+            },
+            series: [{
+                name: '累计销量',
+                type: 'bar',
+                data: counts.reverse(),
+                itemStyle: {
+                    color: new echarts.graphic.LinearGradient(1, 0, 0, 0, [
+                        {offset: 0, color: '#ff6b6b'},
+                        {offset: 1, color: '#feca57'}
+                    ]),
+                    borderRadius: [0, 4, 4, 0]
+                },
+                label: { show: true, position: 'right', color: '#333' }
+            }]
+        };
+        myChart.setOption(option);
+        window.addEventListener('resize', function() { myChart.resize(); });
+    }
+</script>
+{% endblock %}

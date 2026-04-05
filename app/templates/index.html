@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block page_id %}index{% endblock %}
+
+{% block content %}
+<style>
+    /* 隐藏 base.html 中可能存在的默认内外边距，确保布局舒展 */
+    .dashboard-container {
+        padding: 20px;
+        animation: fadeIn 0.5s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 数据指标卡片网格 */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 24px;
+        margin-bottom: 24px;
+    }
+
+    /* 单个数据卡片基础样式 */
+    .stat-card {
+        border-radius: 16px;
+        padding: 24px;
+        color: #fff;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    /* 不同的渐变色主题 */
+    .bg-gradient-blue { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+    .bg-gradient-green { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+    .bg-gradient-orange { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+    .bg-gradient-purple { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+
+    /* 卡片内部元素 */
+    .stat-title {
+        font-size: 15px;
+        font-weight: 500;
+        opacity: 0.9;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .stat-value {
+        font-size: 32px;
+        font-weight: bold;
+        letter-spacing: 1px;
+        transition: color 0.3s;
+    }
+
+    /* 卡片右侧背景大图标（半透明） */
+    .stat-bg-icon {
+        position: absolute;
+        right: -10px;
+        bottom: -15px;
+        font-size: 80px;
+        opacity: 0.15;
+        transform: rotate(-15deg);
+        pointer-events: none;
+    }
+
+    /* 图表容器面板样式 */
+    .chart-panel {
+        background: #fff;
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        margin-bottom: 24px;
+        border: 1px solid rgba(0,0,0,0.02);
+    }
+
+    .panel-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 20px;
+        padding-left: 12px;
+        border-left: 4px solid #4facfe;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .chart-container {
+        width: 100%;
+        height: 350px;
+    }
+
+    /* 下方双列图表网格 */
+    .charts-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 24px;
+    }
+</style>
+
+<div class="dashboard-container">
+    <div class="stats-grid">
+        <div class="stat-card bg-gradient-blue">
+            <div class="stat-title"><i class="fas fa-wallet"></i> 总消费金额</div>
+            <div class="stat-value">¥ {{ "%.2f"|format(total_amount | default(0, true) | float) }}</div>
+            <i class="fas fa-yen-sign stat-bg-icon"></i>
+        </div>
+        <div class="stat-card bg-gradient-green">
+            <div class="stat-title"><i class="fas fa-receipt"></i> 总订单数</div>
+            <div class="stat-value">{{ total_order | default(0, true) }}</div>
+            <i class="fas fa-chart-line stat-bg-icon"></i>
+        </div>
+        <div class="stat-card bg-gradient-orange">
+            <div class="stat-title"><i class="fas fa-users"></i> 服务用户数</div>
+            <div class="stat-value">{{ total_user | default(0, true) }}</div>
+            <i class="fas fa-user-friends stat-bg-icon"></i>
+        </div>
+        <div class="stat-card bg-gradient-purple">
+            <div class="stat-title"><i class="fas fa-utensils"></i> 在售菜品数</div>
+            <div class="stat-value">{{ total_dish | default(0, true) }}</div>
+            <i class="fas fa-hamburger stat-bg-icon"></i>
+        </div>
+    </div>
+
+    <div class="chart-panel">
+        <div class="panel-title">
+            <i class="fas fa-chart-area" style="color: #4facfe;"></i>
+            全校食堂消费趋势概览
+        </div>
+        <div id="trend-chart" class="chart-container" style="height: 400px;"></div>
+    </div>
+
+    <div class="charts-row">
+        <div class="chart-panel" style="margin-bottom: 0;">
+            <div class="panel-title">
+                <i class="fas fa-store" style="color: #fa709a;"></i>
+                各食堂营业额占比排行
+            </div>
+            <div id="canteen-chart" class="chart-container"></div>
+        </div>
+
+        <div class="chart-panel" style="margin-bottom: 0;">
+            <div class="panel-title">
+                <i class="fas fa-fire" style="color: #ff4d4f;"></i>
+                全校热销菜品 TOP10
+            </div>
+            <div id="hot-dish-chart" class="chart-container"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // 增加 default([], true) 防止传入 null 或未定义时导致 JS 报错
+    window.trendData = {{ trend_data | default([], true) | tojson }};
+    window.canteenData = {{ canteen_data | default([], true) | tojson }};
+    window.hotDishData = {{ hot_dish | default([], true) | tojson }};
+
+    // 【高级功能：前端大屏伪实时动态刷新】
+    // 模拟 websocket 实时订单数据流
+    setInterval(function() {
+        // 获取页面上的 DOM 元素
+        let amountEl = document.querySelector('.stat-card:nth-child(1) .stat-value');
+        let orderEl = document.querySelector('.stat-card:nth-child(2) .stat-value');
+
+        if (amountEl && orderEl) {
+            // 解析当前数值
+            let currentAmount = parseFloat(amountEl.innerText.replace('¥', '').replace(/,/g, ''));
+            let currentOrder = parseInt(orderEl.innerText.replace(/,/g, ''));
+
+            // 模拟随机产生的新订单 (每 5 秒可能增加 1-3 单，金额增加 10-50 元)
+            let newOrders = Math.floor(Math.random() * 4);
+            if (newOrders > 0) {
+                let newAmount = currentAmount + (Math.random() * 40 + 10);
+
+                // 炫酷的数字跳动更新
+                amountEl.innerText = '¥ ' + newAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                orderEl.innerText = (currentOrder + newOrders).toLocaleString();
+
+                // 给元素加一个高亮闪烁效果
+                amountEl.style.color = '#ffd700';
+                setTimeout(() => { amountEl.style.color = 'white'; }, 500);
+            }
+        }
+    }, 5000);
+</script>
+{% endblock %}

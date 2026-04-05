@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}数据报表 - 校园食堂数据分析{% endblock %}
+
+{% block content %} 
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>📊 数据报表中心</h2>
+        <a href="{{ url_for('analysis.export_report') }}" class="btn btn-primary btn-sm">
+            📥 导出 Excel 报表
+        </a>
+    </div>
+    <hr>
+
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">📈 各食堂营业额对比 (实时)</h5>
+                </div>
+                <div class="card-body">
+                    <div id="barChart" style="width: 100%; height: 350px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">🍲 经营占比分析</h5>
+                </div>
+                <div class="card-body">
+                    <div id="pieChart" style="width: 100%; height: 350px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var rawData = {{ canteen_data | tojson | safe }};
+
+        var names = rawData.map(function(item) { return item.canteen_name; });
+        var amounts = rawData.map(function(item) { return item.total_amount; });
+
+        var pieData = rawData.map(function(item) {
+            return { name: item.canteen_name, value: item.total_amount };
+        });
+
+        var barChart = echarts.init(document.getElementById('barChart'));
+        var barOption = {
+            tooltip: { trigger: 'axis' },
+            grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+            xAxis: {
+                type: 'category',
+                data: names,
+                axisLabel: { interval: 0, rotate: 30 }
+            },
+            yAxis: { type: 'value', name: '金额(元)' },
+            series: [{
+                name: '累计营业额',
+                type: 'bar',
+                data: amounts,
+                itemStyle: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        { offset: 0, color: '#83bff6' },
+                        { offset: 0.5, color: '#188df0' },
+                        { offset: 1, color: '#188df0' }
+                    ])
+                },
+                emphasis: {
+                    itemStyle: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                            { offset: 0, color: '#2378f7' },
+                            { offset: 0.7, color: '#2378f7' },
+                            { offset: 1, color: '#83bff6' }
+                        ])
+                    }
+                }
+            }]
+        };
+        barChart.setOption(barOption);
+
+        var pieChart = echarts.init(document.getElementById('pieChart'));
+        var pieOption = {
+            tooltip: { trigger: 'item', formatter: '{a} <br/>{b} : {c}元 ({d}%)' },
+            legend: { bottom: '0', left: 'center' },
+            series: [{
+                name: '营业额占比',
+                type: 'pie',
+                radius: ['40%', '70%'],
+                avoidLabelOverlap: false,
+                itemStyle: { borderRadius: 10, borderColor: '#fff', borderWidth: 2 },
+                label: { show: false, position: 'center' },
+                emphasis: {
+                    label: { show: true, fontSize: '20', fontWeight: 'bold' }
+                },
+                labelLine: { show: false },
+                data: pieData
+            }]
+        };
+        pieChart.setOption(pieOption);
+
+        window.addEventListener('resize', function() {
+            barChart.resize();
+            pieChart.resize();
+        });
+    });
+</script>
+{% endblock %}

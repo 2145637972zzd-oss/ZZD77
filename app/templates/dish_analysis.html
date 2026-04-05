@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block page_id %}dish-analysis{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm border-0" style="border-radius: 12px;">
+    <div class="card-header bg-white border-bottom-0 pt-4 pb-2 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-diagram-3-fill text-primary"></i> 智能套餐搭配建议 (基于 FP-Growth)</h5>
+    </div>
+
+    <div class="card-body pt-0">
+        <div class="alert alert-info border-0 shadow-sm mt-2" role="alert" style="border-radius: 10px;">
+            <strong><i class="bi bi-lightbulb"></i> 商家运营提示：</strong><br>
+            <ul class="mb-0 mt-1 text-muted small">
+                <li><b>支持度：</b> 这几道菜同时卖出的频率。</li>
+                <li><b>置信度：</b> 买了左边菜品的顾客，有多大概率顺手买右边的菜品。</li>
+                <li><b class="text-danger">提升度 (Lift)：</b> 大于1表示正相关。数值越大，说明这几道菜越适合<strong class="text-dark">捆绑成套餐销售</strong>！</li>
+            </ul>
+        </div>
+
+        <div class="table-responsive mt-4">
+            <table class="table table-hover align-middle text-center" style="border-top: 1px solid #eee;">
+                <thead class="table-light text-muted small">
+                    <tr>
+                        <th width="8%">搭配热度</th>
+                        <th width="30%">顾客点了...</th>
+                        <th width="10%"></th>
+                        <th width="30%">顺手点它的概率极高</th>
+                        <th>关联置信度</th>
+                        <th>套餐推荐指数</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if rules %}
+                        {% for rule in rules %}
+                        <tr>
+                            <td>
+                                {% if loop.index <= 3 %}
+                                    <span class="badge bg-danger rounded-pill px-2 py-1 fs-6 shadow-sm"><i class="bi bi-fire"></i> TOP {{ loop.index }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary rounded-pill">{{ loop.index }}</span>
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                <div class="d-flex align-items-center justify-content-center flex-wrap gap-2">
+                                    {% for item in rule.antecedents_list %}
+                                        <div class="text-center">
+                                            <img src="{{ item.img }}" alt="{{ item.name }}" class="rounded shadow-sm" style="width: 50px; height: 50px; object-fit: cover; border: 2px solid #fff;">
+                                            <div style="font-size: 0.75rem; max-width: 70px;" class="text-truncate text-muted mt-1 fw-bold">{{ item.name }}</div>
+                                        </div>
+                                        {% if not loop.last %}
+                                            <i class="bi bi-plus text-muted fs-5 mt-2"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </td>
+
+                            <td>
+                                <i class="bi bi-arrow-right-circle-fill text-success fs-3 opacity-75"></i>
+                            </td>
+
+                            <td>
+                                <div class="d-flex align-items-center justify-content-center flex-wrap gap-2">
+                                    {% for item in rule.consequents_list %}
+                                        <div class="text-center">
+                                            <img src="{{ item.img }}" alt="{{ item.name }}" class="rounded shadow-sm border border-success border-2" style="width: 55px; height: 55px; object-fit: cover;">
+                                            <div style="font-size: 0.75rem; max-width: 70px;" class="text-truncate text-success mt-1 fw-bold">{{ item.name }}</div>
+                                        </div>
+                                        {% if not loop.last %}
+                                            <i class="bi bi-plus text-muted fs-5 mt-2"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </td>
+
+                            <td>
+                                <div class="progress" style="height: 10px; border-radius: 5px;">
+                                  <div class="progress-bar bg-success" role="progressbar" style="width: {{ rule.confidence * 100 }}%;" aria-valuenow="{{ rule.confidence * 100 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                                <div class="small text-muted mt-1">{{ "%.1f"|format(rule.confidence * 100) }}%</div>
+                            </td>
+
+                            <td>
+                                {% if rule.lift >= 2.0 %}
+                                    <span class="badge bg-danger fs-6 px-3 py-2 shadow-sm"><i class="bi bi-star-fill text-warning"></i> 极力推荐 ({{ "%.2f"|format(rule.lift) }})</span>
+                                {% elif rule.lift >= 1.5 %}
+                                    <span class="badge bg-warning text-dark fs-6 px-3 py-2"><i class="bi bi-star-half text-dark"></i> 建议组合 ({{ "%.2f"|format(rule.lift) }})</span>
+                                {% else %}
+                                    <span class="badge bg-light text-dark border px-3 py-2">可以尝试 ({{ "%.2f"|format(rule.lift) }})</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <i class="bi bi-inbox fs-1 d-block mb-2 text-light"></i>
+                                暂无强关联规则，请检查数据量或调低算法阈值
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

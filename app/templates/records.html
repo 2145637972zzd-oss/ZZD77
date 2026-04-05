@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block page_id %}records{% endblock %}
+
+{% block content %}
+<div class="card mb-4 shadow-sm border-0" style="border-radius: 12px;">
+    <div class="card-body pb-3">
+        <form action="{{ url_for('analysis.records') }}" method="GET" class="row g-3 align-items-end">
+            <input type="hidden" name="page_size" value="{{ page_size }}">
+
+            <div class="col-md-3">
+                <label for="canteen_id" class="form-label text-muted small fw-bold"><i class="bi bi-shop"></i> 选择食堂</label>
+                <select class="form-select border-0 bg-light" id="canteen_id" name="canteen_id">
+                    <option value="">-- 全部食堂 --</option>
+                    {% for c in canteens %}
+                        <option value="{{ c.id }}" {% if request.args.get('canteen_id')|string == c.id|string %}selected{% endif %}>
+                            {{ c.canteen_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label for="keyword" class="form-label text-muted small fw-bold"><i class="bi bi-person"></i> 用户姓名</label>
+                <input type="text" class="form-control border-0 bg-light" id="keyword" name="keyword"
+                       value="{{ request.args.get('keyword', '') }}" placeholder="支持模糊搜索">
+            </div>
+
+            <div class="col-md-2">
+                <label for="start_date" class="form-label text-muted small fw-bold"><i class="bi bi-calendar"></i> 开始日期</label>
+                <input type="date" class="form-control border-0 bg-light" id="start_date" name="start_date"
+                       value="{{ request.args.get('start_date', '') }}">
+            </div>
+
+            <div class="col-md-2">
+                <label for="end_date" class="form-label text-muted small fw-bold"><i class="bi bi-calendar-check"></i> 结束日期</label>
+                <input type="date" class="form-control border-0 bg-light" id="end_date" name="end_date"
+                       value="{{ request.args.get('end_date', '') }}">
+            </div>
+
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100" style="border-radius: 8px;">
+                    <i class="bi bi-search"></i> 账单查询
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0" style="border-radius: 12px;">
+    <div class="card-header bg-white border-bottom-0 pt-4 pb-2 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-receipt"></i> 校园卡消费账单</h5>
+        <span class="badge bg-light text-secondary border">共为您检索到 {{ total_records }} 笔交易</span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light text-muted small" style="border-top: 1px solid #eee;">
+                <tr>
+                    <th class="ps-4">交易单号</th>
+                    <th>消费商户 (食堂)</th>
+                    <th>消费者</th>
+                    <th>支付金额(元)</th>
+                    <th>交易时间</th>
+                    <th>支付方式</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if records %}
+                    {% for record in records %}
+                    <tr>
+                        <td class="ps-4 text-muted small">#{{ record.record_id }}</td>
+
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <img src="{{ record.canteen_image }}" alt="食堂环境" class="rounded shadow-sm" style="width: 50px; height: 50px; object-fit: cover; margin-right: 15px;">
+                                <div>
+                                    <div class="fw-bold text-dark">{{ record.canteen_name }}</div>
+                                    <div class="text-muted" style="font-size: 0.8rem;"><i class="bi bi-geo-alt"></i> {{ record.window_name }}</div>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="fw-bold text-primary">{{ record.user_name }}</div>
+                            <div class="text-muted" style="font-size: 0.8rem;">ID: {{ record.user_id }}</div>
+                        </td>
+
+                        <td class="text-danger fw-bold fs-5">
+                            -¥{{ "%.2f"|format(record.total_amount) }}
+                        </td>
+
+                        <td class="text-muted small">{{ record.pay_time }}</td>
+
+                        <td>
+                            {% if record.pay_type == 'card' %}
+                                <span class="badge bg-secondary-subtle text-secondary px-2 py-1"><i class="bi bi-credit-card"></i> 校园卡</span>
+                            {% elif record.pay_type == 'wechat' %}
+                                <span class="badge bg-success-subtle text-success px-2 py-1"><i class="bi bi-wechat"></i> 微信</span>
+                            {% elif record.pay_type == 'alipay' %}
+                                <span class="badge bg-primary-subtle text-primary px-2 py-1"><i class="bi bi-alipay"></i> 支付宝</span>
+                            {% else %}
+                                <span class="badge bg-light text-dark border">{{ record.pay_type }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            <i class="bi bi-inbox fs-1 text-light"></i>
+                            <p class="mt-2">没找到符合条件的消费记录</p>
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if pages > 1 %}
+    <div class="card-footer bg-white border-top-0 py-3">
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center mb-0">
+                {% set args = request.args.to_dict() %}
+
+                <li class="page-item {% if page == 1 %}disabled{% endif %}">
+                    {% set _ = args.update({'page': page - 1}) %}
+                    <a class="page-link shadow-sm border-0 mx-1" href="{{ url_for('analysis.records', **args) }}" style="border-radius: 8px;">上一页</a>
+                </li>
+
+                {% for p in range(1, pages + 1) %}
+                    {% if p == 1 or p == pages or (p >= page - 2 and p <= page + 2) %}
+                        {% set _ = args.update({'page': p}) %}
+                        <li class="page-item {% if p == page %}active{% endif %}">
+                            <a class="page-link shadow-sm border-0 mx-1 {% if p == page %}bg-primary text-white{% else %}text-dark{% endif %}"
+                               href="{{ url_for('analysis.records', **args) }}" style="border-radius: 8px;">{{ p }}</a>
+                        </li>
+                    {% elif p == 2 or p == pages - 1 %}
+                        <li class="page-item disabled"><span class="page-link border-0 bg-transparent text-muted">...</span></li>
+                    {% endif %}
+                {% endfor %}
+
+                <li class="page-item {% if page == pages %}disabled{% endif %}">
+                    {% set _ = args.update({'page': page + 1}) %}
+                    <a class="page-link shadow-sm border-0 mx-1" href="{{ url_for('analysis.records', **args) }}" style="border-radius: 8px;">下一页</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

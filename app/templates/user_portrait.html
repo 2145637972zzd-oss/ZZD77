@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block page_id %}user-portrait{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h4 class="mb-0 text-primary border-start border-4 border-primary ps-2">我的饮食画像与年度账单</h4>
+        <p class="text-muted mt-2">基于海量消费行为的大数据聚类分析，为您生成专属的校园干饭回忆。</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-5 mb-4">
+        <div class="card shadow-sm border-0 h-100" style="border-radius: 15px; background: linear-gradient(135deg, #fffcf9 0%, #fff1e6 100%);">
+            <div class="card-body text-center p-4">
+                <span class="badge bg-danger rounded-pill px-3 py-2 mb-3 shadow-sm fs-6">
+                    <i class="bi bi-award-fill text-warning"></i> 年度灵魂美食大赏
+                </span>
+
+                {% if favorite_dish %}
+                <div class="position-relative d-inline-block mt-2 mb-4">
+                    <img src="{{ favorite_dish.image_url }}" alt="{{ favorite_dish.name }}"
+                         class="rounded-circle shadow-lg"
+                         style="width: 200px; height: 200px; object-fit: cover; border: 6px solid #fff;">
+
+                    <div class="position-absolute bottom-0 end-0 bg-white rounded-circle shadow d-flex align-items-center justify-content-center"
+                         style="width: 50px; height: 50px; transform: translate(10%, 10%);">
+                        <i class="bi bi-heart-fill text-danger fs-3"></i>
+                    </div>
+                </div>
+
+                <h2 class="fw-bold text-dark mb-1">{{ favorite_dish.name }}</h2>
+                <p class="text-muted mb-4">全年共翻牌 <span class="text-danger fw-bold fs-4 mx-1">{{ favorite_dish.count }}</span> 次</p>
+
+                <div class="alert alert-light border border-warning text-dark text-start shadow-sm" style="border-radius: 10px;">
+                    <strong><i class="bi bi-quote text-warning fs-4"></i> 账单寄语：</strong><br>
+                    <span class="text-muted small">
+                        "每一次的选择都不是偶然，<strong class="text-danger">{{ favorite_dish.name }}</strong> 见证了你无数个饥肠辘辘后的满足瞬间。它是你的干饭搭子，更是你不可替代的灵魂慰藉。"
+                    </span>
+                </div>
+                {% else %}
+                <div class="py-5 text-muted">
+                    <i class="bi bi-cup-straw fs-1"></i>
+                    <p class="mt-3">暂无消费数据，快去食堂发掘你的最爱吧！</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7 mb-4">
+        <div class="card shadow-sm border-0 h-100" style="border-radius: 15px;">
+            <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+                <h5 class="fw-bold"><i class="bi bi-pie-chart-fill text-info"></i> 食客群体分群 (K-Means)</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">算法已将全校师生划分为以下几类典型饮食群体：</p>
+                <div class="d-flex flex-wrap gap-2 mt-3">
+                    <span class="badge bg-primary-subtle text-primary border fs-6 px-3 py-2 rounded-pill">规律就餐型</span>
+                    <span class="badge bg-success-subtle text-success border fs-6 px-3 py-2 rounded-pill">健康轻食党</span>
+                    <span class="badge bg-warning-subtle text-dark border fs-6 px-3 py-2 rounded-pill">深夜碳水狂魔</span>
+                    <span class="badge bg-danger-subtle text-danger border fs-6 px-3 py-2 rounded-pill">尝鲜美食家</span>
+                </div>
+
+                <div class="mt-5 bg-light rounded p-4 text-center border border-dashed">
+                    <i class="bi bi-radar text-muted" style="font-size: 3rem;"></i>
+                    <h6 class="mt-3 fw-bold text-dark">群体特征雷达图及消费曲线</h6>
+                    <p class="text-muted small">K-Means 聚类已完成计算，您的干饭特征已被系统成功捕捉。</p>
+
+                    <div id="clusterChartContainer">
+                        {{ cluster_result }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

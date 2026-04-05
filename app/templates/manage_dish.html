@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% block page_id %}manage-dish{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="fas fa-utensils text-danger"></i> 菜品信息管理</h5>
+        <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#addDishModal">
+            <i class="fas fa-plus"></i> 新增菜品
+        </button>
+    </div>
+    
+    <div class="card-body">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-success py-2">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>图片</th>
+                    <th>菜品ID</th>
+                    <th>菜品名称</th>
+                    <th>所属窗口</th>
+                    <th>价格(元)</th>
+                    <th>分类</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for dish, window in dishes %}
+                <tr>
+                    <td>
+                        <img src="{{ dish.image_url }}" alt="菜品图" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
+                    </td>
+                    <td class="text-muted">{{ dish.dish_id }}</td>
+                    <td class="fw-bold text-dark">{{ dish.dish_name }}</td>
+                    <td><span class="badge bg-info text-dark">{{ window.window_name if window else '未知窗口' }}</span></td>
+                    <td class="text-danger fw-bold">¥{{ "%.2f"|format(dish.price) }}</td>
+                    <td>{{ dish.dish_type }}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editDishModal{{ dish.dish_id }}">修改</button>
+                        <a href="{{ url_for('manage.delete_dish', dish_id=dish.dish_id) }}"
+                           class="btn btn-sm btn-outline-danger"
+                           onclick="return confirm('确定要下架【{{ dish.dish_name }}】吗？');">删除</a>
+
+                        <div class="modal fade text-start" id="editDishModal{{ dish.dish_id }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <form action="{{ url_for('manage.edit_dish', dish_id=dish.dish_id) }}" method="POST" enctype="multipart/form-data" class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">修改菜品 - {{ dish.dish_name }}</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <label class="form-label">重新上传图片 (不选则保留原图)</label>
+                                            <input type="file" name="image_file" class="form-control" accept="image/*">
+
+                                            <div class="form-check mt-2">
+                                                <input class="form-check-input" type="checkbox" name="delete_image" value="1" id="deleteImageDish{{ dish.dish_id }}">
+                                                <label class="form-check-label text-danger small" for="deleteImageDish{{ dish.dish_id }}">
+                                                    <i class="fas fa-trash-alt"></i> 删除当前自定义图片 (恢复为系统默认图片)
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">菜品名称</label>
+                                            <input type="text" name="dish_name" class="form-control" value="{{ dish.dish_name }}" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">菜品单价 (元)</label>
+                                            <input type="number" step="0.01" name="price" class="form-control" value="{{ dish.price }}" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">所属售卖窗口</label>
+                                            <select name="window_id" class="form-select" required>
+                                                {% for w in windows %}
+                                                    <option value="{{ w.window_id }}" {% if dish.window_id == w.window_id %}selected{% endif %}>{{ w.window_name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">菜品分类</label>
+                                            <select name="dish_type" class="form-select">
+                                                <option value="荤菜" {% if dish.dish_type == '荤菜' %}selected{% endif %}>荤菜</option>
+                                                <option value="素菜" {% if dish.dish_type == '素菜' %}selected{% endif %}>素菜</option>
+                                                <option value="粉面" {% if dish.dish_type == '粉面' %}selected{% endif %}>粉面</option>
+                                                <option value="特色餐" {% if dish.dish_type == '特色餐' %}selected{% endif %}>特色餐</option>
+                                                <option value="小吃" {% if dish.dish_type == '小吃' %}selected{% endif %}>小吃</option>
+                                                <option value="饮品" {% if dish.dish_type == '饮品' %}selected{% endif %}>饮品</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                                        <button type="submit" class="btn btn-primary">保存修改</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="addDishModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form action="{{ url_for('manage.add_dish') }}" method="POST" enctype="multipart/form-data" class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">上架新菜品</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">菜品图片 (选填)</label>
+                    <input type="file" name="image_file" class="form-control" accept="image/*">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">菜品名称</label>
+                    <input type="text" name="dish_name" class="form-control" required placeholder="如：爆炒小龙虾">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">菜品单价 (元)</label>
+                    <input type="number" step="0.01" name="price" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">所属售卖窗口</label>
+                    <select name="window_id" class="form-select" required>
+                        <option value="">-- 请选择所属窗口 --</option>
+                        {% for w in windows %}
+                            <option value="{{ w.window_id }}">{{ w.window_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">菜品分类</label>
+                    <select name="dish_type" class="form-select">
+                        <option value="荤菜">荤菜</option>
+                        <option value="素菜">素菜</option>
+                        <option value="粉面">粉面</option>
+                        <option value="特色餐">特色餐</option>
+                        <option value="小吃">小吃</option>
+                        <option value="饮品">饮品</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="submit" class="btn btn-danger">确认上架</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

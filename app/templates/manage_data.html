@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block page_id %}manage-data{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h4 class="mb-0 text-primary border-start border-4 border-primary ps-2">系统数据源调度中心</h4>
+        <p class="text-muted mt-2">在这里，你可以一键让系统读取内部数据库（脚本虚拟生成的数据），或者外接读取任意的 CSV 分析数据集。</p>
+    </div>
+</div>
+
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-success shadow-sm rounded-3"><i class="bi bi-check-circle-fill"></i> {{ message }}</div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm h-100 border-0 {% if current_mode == 'db' %}border-top border-4 border-primary{% endif %}">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <h5 class="fw-bold"><i class="bi bi-database text-primary fs-3 me-2"></i>内部数据库模式</h5>
+                    {% if current_mode == 'db' %}
+                        <span class="badge bg-success my-auto py-2 px-3">当前激活中</span>
+                    {% endif %}
+                </div>
+                <p class="text-muted mt-3">读取系统 MySQL 数据库。适合使用 <code>batch_consume_generate.py</code> 脚本大批量虚拟生成的标准校园数据。</p>
+                <form action="{{ url_for('manage.switch_data_source', mode='db') }}" method="POST" class="mt-4">
+                    {% if current_mode == 'db' %}
+                        <button type="button" class="btn btn-secondary w-100" disabled>已在当前模式</button>
+                    {% else %}
+                        <button type="submit" class="btn btn-primary w-100"><i class="bi bi-play-fill"></i> 切换至数据库模式</button>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm h-100 border-0 {% if current_mode == 'csv' %}border-top border-4 border-success{% endif %}">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <h5 class="fw-bold"><i class="bi bi-file-earmark-spreadsheet text-success fs-3 me-2"></i>外部数据集直读模式</h5>
+                    {% if current_mode == 'csv' %}
+                        <span class="badge bg-success my-auto py-2 px-3">当前激活中</span>
+                    {% endif %}
+                </div>
+                <p class="text-muted mt-3">绕过数据库，直接在内存中利用 Pandas 读取并分析 CSV 数据集。当前运行的 CSV: 
+                    <strong class="text-danger">{{ current_csv if current_csv else '未选择' }}</strong>
+                </p>
+                
+                <hr>
+                
+                <h6 class="fw-bold mb-3">可选数据集仓库 (data/ 目录)：</h6>
+                {% if csv_files %}
+                    <ul class="list-group mb-4">
+                    {% for file in csv_files %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-filetype-csv text-muted me-2"></i>{{ file }}</span>
+                            <form action="{{ url_for('manage.switch_data_source', mode='csv') }}" method="POST" class="m-0">
+                                <input type="hidden" name="filename" value="{{ file }}">
+                                {% if current_mode == 'csv' and current_csv == file %}
+                                    <button type="button" class="btn btn-sm btn-outline-success" disabled>运行中</button>
+                                {% else %}
+                                    <button type="submit" class="btn btn-sm btn-outline-primary">激活此数据集</button>
+                                {% endif %}
+                            </form>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-danger small">未检测到任何 CSV 数据集，请先上传。</p>
+                {% endif %}
+
+                <form action="{{ url_for('manage.upload_dataset') }}" method="POST" enctype="multipart/form-data" class="bg-light p-3 rounded">
+                    <label class="form-label small fw-bold text-muted">上传新的 CSV 数据集</label>
+                    <div class="input-group">
+                        <input type="file" name="csv_file" class="form-control form-control-sm" accept=".csv" required>
+                        <button class="btn btn-dark btn-sm" type="submit">上传并入库</button>
+                    </div>
+                    <div class="form-text small mt-2">提示：必须保证 CSV 文件的表头包含 Date, Time, Item, Price 等英文字段才能被算法正确解析。</div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
