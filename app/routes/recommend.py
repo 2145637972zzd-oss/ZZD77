@@ -11,13 +11,11 @@ from sqlalchemy import func
 
 recommend_bp = Blueprint('recommend', __name__)
 
-
 @recommend_bp.route('/user_portrait')
 @login_required
 def user_portrait():
     labels, _ = cluster_service.user_kmeans_cluster()
 
-    # ================= 新增：查询年度灵魂美食 =================
     current_user_id = session.get('user_id') or session.get('username') or '001'
 
     # 查出该用户所有的消费记录
@@ -41,8 +39,7 @@ def user_portrait():
             favorite_dish_data = {
                 'name': dish.dish_name or dish.name,
                 'count': top_count,
-                'image_url': dish.image_url if hasattr(dish,
-                                                       'image_url') and dish.image_url else '/static/images/default_dish.jpg'
+                'image_url': dish.image_url if hasattr(dish, 'image_url') and dish.image_url else '/static/images/default_dish.jpg'
             }
     else:
         # 如果该用户是新用户没数据，为了前端展示好看，我们去热销榜拿个第一名兜底
@@ -56,8 +53,7 @@ def user_portrait():
             favorite_dish_data = {
                 'name': dish.dish_name or dish.name,
                 'count': '99+',
-                'image_url': dish.image_url if hasattr(dish,
-                                                       'image_url') and dish.image_url else '/static/images/default_dish.jpg'
+                'image_url': dish.image_url if hasattr(dish, 'image_url') and dish.image_url else '/static/images/default_dish.jpg'
             }
 
     return render_template('user_portrait.html',
@@ -70,10 +66,32 @@ def user_portrait():
 @login_required
 def recommend_view():
     current_user_id = session.get('user_id', 1)
-    recommend_pool_ids = recommend_service.get_recommendations(current_user_id, top_n=20)
+    
+    # 1. 尝试使用协同过滤算法获取个性化推荐
+    recommend_pool_ids = recommend_service.get_recommendations(str(current_user_id), top_n=20)
+    recommend_reason = "✨ 发现你的口味偏好"
 
-    recommended_dish_ids = random.sample(recommend_pool_ids,
-                                         min(6, len(recommend_pool_ids))) if recommend_pool_ids else []
+    # 2. 【核心修复】冷启动兜底机制：如果没有算法推荐结果，自动推荐校园热销榜
+    if not recommend_pool_ids:
+        recommend_reason = "🔥 校园热销爆款 (猜你喜欢)"
+        
+        # 统计全校销量最高的前 20 个菜品作为推荐池
+        top_records = db.session.query(
+            DishInfo.dish_id,
+            func.count(ConsumeRecord.record_id).label('scount')
+        ).join(
+            ConsumeRecord, func.find_in_set(DishInfo.dish_id, ConsumeRecord.dish_ids) > 0
+        ).group_by(DishInfo.dish_id).order_by(func.count(ConsumeRecord.record_id).desc()).limit(20).all()
+
+        recommend_pool_ids = [r.dish_id for r in top_records]
+
+        # 极端情况：如果连消费记录都没有（比如刚刚搭建的新系统），直接随机推菜品
+        if not recommend_pool_ids:
+            all_dishes = db.session.query(DishInfo.dish_id).limit(30).all()
+            recommend_pool_ids = [d.dish_id for d in all_dishes]
+
+    # 从推荐池中随机抽取 6 个展示，保证每次刷新都有新鲜感
+    recommended_dish_ids = random.sample(recommend_pool_ids, min(6, len(recommend_pool_ids))) if recommend_pool_ids else []
 
     recommended_dishes = []
     if recommended_dish_ids:
@@ -89,13 +107,11 @@ def recommend_view():
             recommended_dishes.append({
                 "id": dish.dish_id,
                 "name": dish.dish_name or dish.name,
-                "price": dish.price,
+                "price": float(dish.price),
                 "calories": cal,
                 "protein": pro,
-                "reason": f"✨ 发现你的口味偏好",
-                # 之前加上去的图片路径
-                "image_url": dish.image_url if hasattr(dish,
-                                                       'image_url') and dish.image_url else '/static/images/default_dish.jpg'
+                "reason": recommend_reason, # 动态展示推荐理由
+                "image_url": dish.image_url if hasattr(dish, 'image_url') and dish.image_url else '/static/images/default_dish.jpg'
             })
 
     return render_template('recommend.html',
@@ -113,10 +129,10 @@ def simulate_buy(dish_id):
         return jsonify({'code': 404, 'msg': '菜品已下架'})
 
     window = db.session.query(CanteenWindow).get(dish.window_id)
-    user_uid = session.get('username')
+    user_uid = session.get('user_id') # 修复为获取真实 user_id 用于记录
 
     new_record = ConsumeRecord(
-        user_id=user_uid,
+        user_id=str(user_uid),
         canteen_id=window.canteen_id if window else 1,
         window_id=dish.window_id,
         dish_ids=str(dish_id),
