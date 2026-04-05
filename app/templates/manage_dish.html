@@ -44,8 +44,8 @@
                     <td>{{ dish.dish_type }}</td>
                     <td>
                         <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editDishModal{{ dish.dish_id }}">修改</button>
-                        <a href="{{ url_for('manage.delete_dish', dish_id=dish.dish_id) }}"
-                           class="btn btn-sm btn-outline-danger"
+                        <a href="{{ url_for('manage.delete_dish', dish_id=dish.dish_id) }}" 
+                           class="btn btn-sm btn-outline-danger" 
                            onclick="return confirm('确定要下架【{{ dish.dish_name }}】吗？');">删除</a>
 
                         <div class="modal fade text-start" id="editDishModal{{ dish.dish_id }}" tabindex="-1">
@@ -59,11 +59,11 @@
                                         <div class="mb-3">
                                             <label class="form-label">重新上传图片 (不选则保留原图)</label>
                                             <input type="file" name="image_file" class="form-control" accept="image/*">
-
+                                            
                                             <div class="form-check mt-2">
                                                 <input class="form-check-input" type="checkbox" name="delete_image" value="1" id="deleteImageDish{{ dish.dish_id }}">
                                                 <label class="form-check-label text-danger small" for="deleteImageDish{{ dish.dish_id }}">
-                                                    <i class="fas fa-trash-alt"></i> 删除当前自定义图片 (恢复为系统默认图片)
+                                                    <i class="fas fa-trash-alt"></i> 删除当前自定义图片 (恢复为系统默认)
                                                 </label>
                                             </div>
                                         </div>
