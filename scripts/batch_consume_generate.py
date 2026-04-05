@@ -94,9 +94,12 @@ def generate_data():
     if not all([users, canteens, windows, dishes, meals]):
         return
 
-    # 配置升级：模拟 365 天数据
-    SIMULATE_DAYS = 365
-    BASE_DAILY_RECORDS = 800
+    # ================= 核心修改 =================
+    # 将模拟时间改为 180 天 (半年)
+    SIMULATE_DAYS = 180
+    # 调低每日基础生成量，提升系统查询流畅度
+    BASE_DAILY_RECORDS = 400
+    # ============================================
 
     print(f"🚀 开始生成海量业务数据 ({SIMULATE_DAYS}天)...")
     start_date = datetime.now() - timedelta(days=SIMULATE_DAYS)
