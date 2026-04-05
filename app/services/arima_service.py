@@ -18,12 +18,23 @@ class ArimaService:
         # 时间序列处理
         df = pd.DataFrame(trend_data)
         df['date'] = pd.to_datetime(df['date'])
-        df = df.set_index('date').asfreq('D', fill_value=0)
+        
+        # 【核心修复1】：去掉强制填0，先按天重采样产生空值(NaN)
+        df = df.set_index('date').asfreq('D')
+        
+        # 【核心修复2】：使用线性插值(interpolate)平滑连接周末或缺失的断层数据，防止产生将规律破坏的深V毛刺
+        # 新版 pandas 推荐直接使用 bfill() 和 ffill() 填充头尾
+        df['total_amount'] = df['total_amount'].interpolate(method='linear').bfill().ffill()
         ts = df['total_amount']
 
         # ARIMA模型训练与预测 (改用带季节性的 SARIMAX，周期为7天)
         try:
-            model = SARIMAX(ts, order=(1, 1, 1), seasonal_order=(1, 1, 1, 7))
+            # 【核心修复3】：关闭强制平稳性和可逆性检查 (enforce_*)，防止模型在小数据集上无法收敛而强行输出直线
+            model = SARIMAX(ts, 
+                            order=(1, 1, 1), 
+                            seasonal_order=(1, 1, 1, 7),
+                            enforce_stationarity=False, 
+                            enforce_invertibility=False)
             model_fit = model.fit(disp=False)
 
             forecast_result = model_fit.get_forecast(steps=forecast_days)
