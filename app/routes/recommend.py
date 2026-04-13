@@ -11,6 +11,7 @@ from sqlalchemy import func
 
 recommend_bp = Blueprint('recommend', __name__)
 
+
 @recommend_bp.route('/user_portrait')
 @login_required
 def user_portrait():
@@ -34,12 +35,16 @@ def user_portrait():
         # 找到吃得最多次的那个菜
         top_dish_id = max(dish_counts, key=dish_counts.get)
         top_count = dish_counts[top_dish_id]
-        dish = db.session.query(DishInfo).get(top_dish_id)
+        
+        # 【修改处 1】修复 SQLAlchemy 警告
+        dish = db.session.get(DishInfo, top_dish_id)
+        
         if dish:
             favorite_dish_data = {
                 'name': dish.dish_name or dish.name,
                 'count': top_count,
-                'image_url': dish.image_url if hasattr(dish, 'image_url') and dish.image_url else '/static/images/default_dish.jpg'
+                'image_url': dish.image_url if hasattr(dish,
+                                                       'image_url') and dish.image_url else '/static/images/default_dish.jpg'
             }
     else:
         # 如果该用户是新用户没数据，为了前端展示好看，我们去热销榜拿个第一名兜底
@@ -53,7 +58,8 @@ def user_portrait():
             favorite_dish_data = {
                 'name': dish.dish_name or dish.name,
                 'count': '99+',
-                'image_url': dish.image_url if hasattr(dish, 'image_url') and dish.image_url else '/static/images/default_dish.jpg'
+                'image_url': dish.image_url if hasattr(dish,
+                                                       'image_url') and dish.image_url else '/static/images/default_dish.jpg'
             }
 
     return render_template('user_portrait.html',
@@ -66,7 +72,7 @@ def user_portrait():
 @login_required
 def recommend_view():
     current_user_id = session.get('user_id', 1)
-    
+
     # 1. 尝试使用协同过滤算法获取个性化推荐
     recommend_pool_ids = recommend_service.get_recommendations(str(current_user_id), top_n=20)
     recommend_reason = "✨ 发现你的口味偏好"
@@ -74,7 +80,7 @@ def recommend_view():
     # 2. 【核心修复】冷启动兜底机制：如果没有算法推荐结果，自动推荐校园热销榜
     if not recommend_pool_ids:
         recommend_reason = "🔥 校园热销爆款 (猜你喜欢)"
-        
+
         # 统计全校销量最高的前 20 个菜品作为推荐池
         top_records = db.session.query(
             DishInfo.dish_id,
@@ -91,14 +97,15 @@ def recommend_view():
             recommend_pool_ids = [d.dish_id for d in all_dishes]
 
     # 从推荐池中随机抽取 6 个展示，保证每次刷新都有新鲜感
-    recommended_dish_ids = random.sample(recommend_pool_ids, min(6, len(recommend_pool_ids))) if recommend_pool_ids else []
+    recommended_dish_ids = random.sample(recommend_pool_ids,
+                                         min(6, len(recommend_pool_ids))) if recommend_pool_ids else []
 
     recommended_dishes = []
     if recommended_dish_ids:
         dishes = db.session.query(DishInfo).filter(DishInfo.dish_id.in_(recommended_dish_ids)).all()
         for dish in dishes:
             if dish.dish_type == '素菜':
-                cal, pro = random.randint(80, 150), random.randint(2, 8)
+                cal, pro = random.random.randint(80, 150), random.randint(2, 8)
             elif dish.dish_type == '荤菜':
                 cal, pro = random.randint(350, 600), random.randint(15, 35)
             else:
@@ -110,8 +117,9 @@ def recommend_view():
                 "price": float(dish.price),
                 "calories": cal,
                 "protein": pro,
-                "reason": recommend_reason, # 动态展示推荐理由
-                "image_url": dish.image_url if hasattr(dish, 'image_url') and dish.image_url else '/static/images/default_dish.jpg'
+                "reason": recommend_reason,  # 动态展示推荐理由
+                "image_url": dish.image_url if hasattr(dish,
+                                                       'image_url') and dish.image_url else '/static/images/default_dish.jpg'
             })
 
     return render_template('recommend.html',
@@ -124,12 +132,14 @@ def recommend_view():
 @recommend_bp.route('/simulate_buy/<int:dish_id>', methods=['POST'])
 @login_required
 def simulate_buy(dish_id):
-    dish = db.session.query(DishInfo).get(dish_id)
+    # 【修改处 2】修复 SQLAlchemy 警告
+    dish = db.session.get(DishInfo, dish_id)
     if not dish:
         return jsonify({'code': 404, 'msg': '菜品已下架'})
 
-    window = db.session.query(CanteenWindow).get(dish.window_id)
-    user_uid = session.get('user_id') # 修复为获取真实 user_id 用于记录
+    # 【修改处 3】修复 SQLAlchemy 警告
+    window = db.session.get(CanteenWindow, dish.window_id)
+    user_uid = session.get('user_id')  # 修复为获取真实 user_id 用于记录
 
     new_record = ConsumeRecord(
         user_id=str(user_uid),
