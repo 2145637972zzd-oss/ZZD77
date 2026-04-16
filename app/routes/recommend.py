@@ -43,8 +43,7 @@ def user_portrait():
             favorite_dish_data = {
                 'name': dish.dish_name or dish.name,
                 'count': top_count,
-                'image_url': dish.image_url if hasattr(dish,
-                                                       'image_url') and dish.image_url else '/static/images/default_dish.jpg'
+                'image_url': dish.image_url if hasattr(dish, 'image_url') and dish.image_url else '/static/images/default_dish.jpg'
             }
     else:
         # 如果该用户是新用户没数据，为了前端展示好看，我们去热销榜拿个第一名兜底
@@ -58,8 +57,7 @@ def user_portrait():
             favorite_dish_data = {
                 'name': dish.dish_name or dish.name,
                 'count': '99+',
-                'image_url': dish.image_url if hasattr(dish,
-                                                       'image_url') and dish.image_url else '/static/images/default_dish.jpg'
+                'image_url': dish.image_url if hasattr(dish, 'image_url') and dish.image_url else '/static/images/default_dish.jpg'
             }
 
     return render_template('user_portrait.html',
@@ -105,7 +103,8 @@ def recommend_view():
         dishes = db.session.query(DishInfo).filter(DishInfo.dish_id.in_(recommended_dish_ids)).all()
         for dish in dishes:
             if dish.dish_type == '素菜':
-                cal, pro = random.random.randint(80, 150), random.randint(2, 8)
+                # 修复了这里的报错，删除了多余的 .random
+                cal, pro = random.randint(80, 150), random.randint(2, 8)
             elif dish.dish_type == '荤菜':
                 cal, pro = random.randint(350, 600), random.randint(15, 35)
             else:
@@ -118,8 +117,7 @@ def recommend_view():
                 "calories": cal,
                 "protein": pro,
                 "reason": recommend_reason,  # 动态展示推荐理由
-                "image_url": dish.image_url if hasattr(dish,
-                                                       'image_url') and dish.image_url else '/static/images/default_dish.jpg'
+                "image_url": dish.image_url if hasattr(dish, 'image_url') and dish.image_url else '/static/images/default_dish.jpg'
             })
 
     return render_template('recommend.html',
